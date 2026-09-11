@@ -29,6 +29,7 @@ import {
   Bar,
   Cell
 } from "recharts";
+import TiltCard from "../components/effects/TiltCard";
 import api from "../services/api";
 
 export default function Insights() {
@@ -120,8 +121,9 @@ export default function Insights() {
           </span>
           <span className="text-xs font-mono text-slate-500">• Demo / Sample Telemetry</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Electronic Failure Intelligence
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-2">
+          <span className="text-slate-900 dark:text-white">Electronic Failure</span>
+          <span className="text-gradient-aurora">Intelligence</span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
           “Learn which problems are most frequently turning usable electronics into premature waste.”
@@ -129,7 +131,7 @@ export default function Insights() {
       </div>
 
       {/* 1. MOST REPORTED PROBLEMS BAR CHART */}
-      <div className="graveyard-card p-6 sm:p-7">
+      <TiltCard maxTilt={2.5} glare={true} glareColor="rgba(6, 182, 212, 0.1)" glowBorder={true} className="graveyard-card p-6 sm:p-7 rounded-3xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -177,7 +179,7 @@ export default function Insights() {
             Over 59% of discarded gadgets suffer from battery or thermal degradation &mdash; both of which are inexpensive component-level repairs that avoid total device replacement.
           </span>
         </div>
-      </div>
+      </TiltCard>
 
       {/* 2. REPAIR VS REPLACE & RECOVERY OPPORTUNITIES */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -322,33 +324,59 @@ export default function Insights() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {preventionGuidelines.map((item, idx) => {
             const Icon = item.icon;
+            const glareMap = {
+              cyan: "rgba(6, 182, 212, 0.15)",
+              amber: "rgba(245, 158, 11, 0.15)",
+              emerald: "rgba(16, 185, 129, 0.15)",
+              purple: "rgba(139, 92, 246, 0.15)"
+            };
+            const borderMap = {
+              cyan: "hover:border-cyan-500/50",
+              amber: "hover:border-amber-500/50",
+              emerald: "hover:border-emerald-500/50",
+              purple: "hover:border-violet-500/50"
+            };
+            const textMap = {
+              cyan: "text-cyan-600 dark:text-cyan-400",
+              amber: "text-amber-600 dark:text-amber-400",
+              emerald: "text-emerald-600 dark:text-emerald-400",
+              purple: "text-violet-600 dark:text-violet-400"
+            };
             return (
-              <div
+              <TiltCard
                 key={idx}
-                className="graveyard-card p-5 space-y-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                maxTilt={5}
+                glare={true}
+                glareColor={glareMap[item.color] || "rgba(20, 184, 166, 0.15)"}
+                glowBorder={true}
+                className="rounded-2xl"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    {item.cause}
-                  </span>
-                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-cyan-600 dark:text-cyan-400">
-                    <Icon className="w-4 h-4" />
+                <div
+                  className={`graveyard-card p-5 h-full space-y-3 transition-colors ${borderMap[item.color] || "hover:border-teal-500/40"}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      {item.cause}
+                    </span>
+                    <div className={`p-2 rounded-xl bg-slate-100 dark:bg-charcoal-800 border border-slate-200 dark:border-charcoal-700 ${textMap[item.color] || "text-teal-600"}`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <span className="text-[11px] text-slate-500 uppercase block font-semibold mb-0.5">
-                    Recommended Prevention:
-                  </span>
-                  <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400">
-                    {item.prevention}
+                  <div>
+                    <span className="text-[11px] text-slate-500 uppercase block font-semibold mb-0.5">
+                      Recommended Prevention:
+                    </span>
+                    <div className={`text-sm font-bold ${textMap[item.color] || "text-teal-600"}`}>
+                      {item.prevention}
+                    </div>
                   </div>
-                </div>
 
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                  {item.detail}
-                </p>
-              </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {item.detail}
+                  </p>
+                </div>
+              </TiltCard>
             );
           })}
         </div>

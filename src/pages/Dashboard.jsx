@@ -34,6 +34,7 @@ import StatusBadge from "../components/common/StatusBadge";
 import { useProducts } from "../context/ProductContext";
 import TiltCard from "../components/effects/TiltCard";
 import MagneticButton from "../components/effects/MagneticButton";
+import ParallaxElement from "../components/effects/ParallaxElement";
 import { computeClientMarketPricing } from "../utils/pricingService";
 
 export default function Dashboard() {
@@ -192,32 +193,37 @@ export default function Dashboard() {
       {/* ------------------------------------------------------------- */}
       {/* 1. HERO SECTION WITH HARDWARE SCHEMATIC VISUAL               */}
       {/* ------------------------------------------------------------- */}
-      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 bg-white dark:bg-gradient-to-br dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#06080D] border border-slate-200 dark:border-charcoal-800 shadow-sm dark:shadow-panel">
-        {/* Glow ambient background accents */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 bg-white dark:bg-gradient-to-br dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#06080D] border border-slate-200 dark:border-charcoal-800 shadow-sm dark:shadow-panel group">
+        {/* Luminous multi-color ambient glow accents */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-teal-500/15 dark:bg-teal-500/10 rounded-full blur-3xl pointer-events-none transition-transform duration-700 group-hover:scale-110" />
+        <div className="absolute top-1/3 -right-12 w-80 h-80 bg-violet-500/10 dark:bg-violet-500/15 rounded-full blur-3xl pointer-events-none transition-transform duration-700 group-hover:scale-105" />
+        <div className="absolute -bottom-24 left-1/4 w-96 h-96 bg-cyan-500/15 dark:bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Hero Left Content */}
           <div className="lg:col-span-7 space-y-5">
-            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-charcoal-900/80 border border-teal-500/30 text-teal-700 dark:text-teal-300 text-xs font-mono font-medium">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 dark:bg-teal-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500 dark:bg-teal-400" />
-              </span>
-              <span>E-Mortem</span>
-              <span className="text-slate-400 dark:text-slate-600">•</span>
-              <span className="text-slate-700 dark:text-slate-300">The Autopsy of Electronic Waste.</span>
-              {isBackendConnected && (
-                <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-sans font-semibold">
-                  SQLite Live
+            <ParallaxElement depth={0.05}>
+              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-100/90 dark:bg-charcoal-900/90 border border-teal-500/30 text-teal-700 dark:text-teal-300 text-xs font-mono font-medium shadow-xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 dark:bg-teal-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500 dark:bg-teal-400" />
                 </span>
-              )}
-            </div>
+                <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-cyan-600 to-violet-600 dark:from-teal-300 dark:via-cyan-300 dark:to-violet-400">
+                  E-Mortem
+                </span>
+                <span className="text-slate-400 dark:text-slate-600">•</span>
+                <span className="text-slate-700 dark:text-slate-300">The Autopsy of Electronic Waste.</span>
+                {isBackendConnected && (
+                  <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-sans font-bold border border-emerald-300 dark:border-emerald-500/30">
+                    SQLite Live
+                  </span>
+                )}
+              </div>
+            </ParallaxElement>
 
             <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
               Before you repair it,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-cyan-600 to-emerald-600 dark:from-teal-400 dark:via-cyan-300 dark:to-emerald-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-cyan-400 via-violet-500 to-emerald-400 dark:from-teal-300 dark:via-cyan-300 dark:via-violet-300 dark:to-emerald-400">
                 understand it.
               </span>
             </h1>
@@ -274,9 +280,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Hero Right: Subtle Animated Electronic Diagnostic Visual */}
+          {/* Hero Right: Animated Holographic Diagnostic Visual */}
           <div className="lg:col-span-5 flex justify-center">
-            <TiltCard maxTilt={8} glare={true} className="relative w-64 h-80 sm:w-72 sm:h-96 rounded-3xl p-1 bg-gradient-to-b from-teal-500/30 via-charcoal-800 to-cyan-500/20 border border-teal-500/30 shadow-2xl flex items-center justify-center">
+            <TiltCard maxTilt={8} glare={true} glareColor="rgba(6, 182, 212, 0.2)" glowBorder={true} className="relative w-64 h-80 sm:w-72 sm:h-96 rounded-3xl p-1 bg-gradient-to-b from-teal-500/30 via-charcoal-800 to-violet-500/25 border border-teal-500/40 shadow-2xl flex items-center justify-center">
               {/* Inner device silhouette */}
               <div className="relative w-full h-full rounded-[22px] bg-charcoal-950 overflow-hidden p-5 flex flex-col justify-between">
                 {/* Laser scan line moving across device */}
@@ -289,13 +295,16 @@ export default function Dashboard() {
 
                 {/* Circuit board telemetry graphics in center */}
                 <div className="space-y-4 my-auto text-center">
-                  <div className="relative mx-auto w-20 h-20 rounded-full border border-teal-500/40 bg-teal-950/20 flex items-center justify-center shadow-inner">
-                    <Activity className="w-10 h-10 text-teal-400 animate-pulse" />
-                    <div className="absolute inset-0 rounded-full border border-teal-400/30 animate-ping opacity-25" />
-                  </div>
+                  <ParallaxElement depth={0.15}>
+                    <div className="relative mx-auto w-20 h-20 rounded-full border border-teal-500/40 bg-teal-950/20 flex items-center justify-center shadow-inner">
+                      <Activity className="w-10 h-10 text-teal-400 animate-pulse" />
+                      <div className="absolute inset-0 rounded-full border border-cyan-400/40 animate-ping opacity-25" />
+                      <div className="absolute -inset-1 rounded-full border border-violet-500/20" />
+                    </div>
+                  </ParallaxElement>
 
                   <div>
-                    <span className="text-[11px] font-mono text-teal-400 tracking-wider uppercase block">
+                    <span className="text-[11px] font-mono text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-300 tracking-wider uppercase block font-bold">
                       DIAGNOSTIC SCANNER
                     </span>
                     <span className="text-xs font-semibold text-slate-200">
@@ -430,46 +439,50 @@ export default function Dashboard() {
       {/* ------------------------------------------------------------- */}
       {/* 3. PROMINENT DEVICE HEALTH OVERVIEW CARD                      */}
       {/* ------------------------------------------------------------- */}
-      {/* ------------------------------------------------------------- */}
-      {/* 3. PROMINENT DEVICE HEALTH OVERVIEW CARD                      */}
-      {/* ------------------------------------------------------------- */}
-      <div className="e-panel-elevated p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-charcoal-800 bg-white dark:bg-gradient-to-br dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#070B10]">
+      <TiltCard maxTilt={3.5} glare={true} glareColor="rgba(20, 184, 166, 0.15)" glowBorder={true} className="e-panel-elevated p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-teal-500/25 bg-white dark:bg-gradient-to-br dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#070B10]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-charcoal-800">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider mb-1">
               <Smartphone className="w-4 h-4" />
               <span>Device Health Overview</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-              Samsung Galaxy S23
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2.5">
+              <span>Samsung Galaxy S23</span>
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-500/30">
+                SM-S911B
+              </span>
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              Purchased March 2024 • Model SM-S911B • Diagnosis ID: <span className="font-mono text-teal-700 dark:text-cyan-300 font-bold">EM-2026-1024</span>
+              Purchased March 2024 • Diagnosis ID: <span className="font-mono text-teal-700 dark:text-cyan-300 font-bold">EM-2026-1024</span>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <StatusBadge status="Attention Required" size="md" />
-            <button
-              onClick={handleDemoClick}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white transition-all shadow-sm active:scale-95"
-            >
-              View Full E-Mortem →
-            </button>
+            <MagneticButton strength={0.25}>
+              <button
+                onClick={handleDemoClick}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 via-cyan-500 to-violet-500 hover:from-teal-400 hover:to-violet-400 text-white transition-all shadow-md shadow-teal-500/20 active:scale-95"
+              >
+                View Full E-Mortem →
+              </button>
+            </MagneticButton>
           </div>
         </div>
 
         {/* Big Health Score + 6 Subsystem Progress Bars */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6 items-center">
-          {/* Main Health Score Ring */}
+          {/* Main Health Score Ring with Micro-Depth Parallax */}
           <div className="lg:col-span-4 flex items-center gap-5 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-charcoal-800 pb-6 lg:pb-0 pr-0 lg:pr-6">
-            <ScoreRing
-              score={64}
-              size={120}
-              strokeWidth={10}
-              label="Health Score"
-              sublabel="Electronic Integrity"
-            />
+            <ParallaxElement depth={0.1}>
+              <ScoreRing
+                score={64}
+                size={120}
+                strokeWidth={10}
+                label="Health Score"
+                sublabel="Electronic Integrity"
+              />
+            </ParallaxElement>
             <div>
               <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase block">
                 Overall Health Score
@@ -522,7 +535,7 @@ export default function Dashboard() {
             })}
           </div>
         </div>
-      </div>
+      </TiltCard>
 
       {/* ------------------------------------------------------------- */}
       {/* 4. DIGITAL AUTOPSY VISUALIZATION (Subsystem Forensics)         */}
@@ -758,35 +771,35 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-          <div className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-slate-200 dark:border-charcoal-800 shadow-xs">
+          <TiltCard maxTilt={6} glare={true} glareColor="rgba(6, 182, 212, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-cyan-500/25 dark:border-cyan-500/20 hover:border-cyan-500/50 shadow-xs transition-all">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Devices Diagnosed</span>
-            <div className="text-2xl font-extrabold text-slate-900 dark:text-white">24</div>
-            <span className="text-[10px] text-teal-700 dark:text-teal-400 font-mono mt-1 block">Active audits</span>
-          </div>
+            <div className="text-2xl font-extrabold text-cyan-600 dark:text-cyan-400">24</div>
+            <span className="text-[10px] text-cyan-700 dark:text-cyan-400/80 font-mono mt-1 block font-semibold">Active audits</span>
+          </TiltCard>
 
-          <div className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-slate-200 dark:border-charcoal-800 shadow-xs">
+          <TiltCard maxTilt={6} glare={true} glareColor="rgba(16, 185, 129, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-emerald-500/25 dark:border-emerald-500/20 hover:border-emerald-500/50 shadow-xs transition-all">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Potentially Repairable</span>
             <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">17</div>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-400/80 font-mono mt-1 block">71% salvage rate</span>
-          </div>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-400/80 font-mono mt-1 block font-semibold">71% salvage rate</span>
+          </TiltCard>
 
-          <div className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-slate-200 dark:border-charcoal-800 shadow-xs">
+          <TiltCard maxTilt={6} glare={true} glareColor="rgba(139, 92, 246, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-violet-500/25 dark:border-violet-500/20 hover:border-violet-500/50 shadow-xs transition-all">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Repair Opportunities</span>
-            <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">11</div>
-            <span className="text-[10px] text-amber-700 dark:text-amber-400/80 font-mono mt-1 block">Component-level fixes</span>
-          </div>
+            <div className="text-2xl font-extrabold text-violet-600 dark:text-violet-400">11</div>
+            <span className="text-[10px] text-violet-700 dark:text-violet-400/80 font-mono mt-1 block font-semibold">Component-level fixes</span>
+          </TiltCard>
 
-          <div className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-slate-200 dark:border-charcoal-800 shadow-xs">
+          <TiltCard maxTilt={6} glare={true} glareColor="rgba(20, 184, 166, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-teal-500/25 dark:border-teal-500/20 hover:border-teal-500/50 shadow-xs transition-all">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Replacement Avoided</span>
-            <div className="text-2xl font-extrabold text-teal-700 dark:text-cyan-300">₹1.42L</div>
-            <span className="text-[10px] text-teal-800 dark:text-cyan-400/80 font-mono mt-1 block">Hardware CAPEX saved</span>
-          </div>
+            <div className="text-2xl font-extrabold text-teal-600 dark:text-teal-300">₹1.42L</div>
+            <span className="text-[10px] text-teal-700 dark:text-teal-400/80 font-mono mt-1 block font-semibold">Hardware CAPEX saved</span>
+          </TiltCard>
 
-          <div className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-slate-200 dark:border-charcoal-800 shadow-xs col-span-2 sm:col-span-1">
+          <TiltCard maxTilt={6} glare={true} glareColor="rgba(244, 63, 94, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-white dark:bg-charcoal-900/80 border border-amber-500/25 dark:border-amber-500/20 hover:border-amber-500/50 shadow-xs col-span-2 sm:col-span-1 transition-all">
             <span className="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Most Common Issue</span>
             <div className="text-2xl font-extrabold text-slate-900 dark:text-white">Battery</div>
-            <span className="text-[10px] text-slate-500 font-mono mt-1 block">38% of all cases</span>
-          </div>
+            <span className="text-[10px] text-rose-600 dark:text-rose-400 font-mono mt-1 block font-semibold">38% of all cases</span>
+          </TiltCard>
         </div>
       </div>
 
@@ -812,21 +825,25 @@ export default function Dashboard() {
         {/* 7-Stage Chronological Breadcrumbs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           {[
-            { stage: "Purchased", sub: "March 2024", icon: Smartphone, color: "text-slate-500 dark:text-slate-400", border: "border-slate-200 dark:border-charcoal-800" },
-            { stage: "Normal Usage", sub: "18 Months", icon: CheckCircle2, color: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-300 dark:border-emerald-500/30" },
-            { stage: "Battery Drain", sub: "5 Days Ago", icon: Battery, color: "text-amber-600 dark:text-amber-400", border: "border-amber-300 dark:border-amber-500/40" },
-            { stage: "Overheating", sub: "3 Days Ago", icon: Flame, color: "text-orange-600 dark:text-orange-400", border: "border-orange-300 dark:border-orange-500/40" },
-            { stage: "Random Shutdown", sub: "2 Days Ago", icon: AlertTriangle, color: "text-rose-600 dark:text-rose-400", border: "border-rose-300 dark:border-rose-500/40" },
-            { stage: "E-Mortem", sub: "Today", icon: Activity, color: "text-teal-600 dark:text-teal-400", border: "border-teal-300 dark:border-teal-500/40" },
-            { stage: "Repair Viable", sub: "Battery Service", icon: ShieldCheck, color: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-400 dark:border-emerald-400" }
+            { stage: "Purchased", sub: "March 2024", icon: Smartphone, color: "text-slate-500 dark:text-slate-400", border: "border-slate-200 dark:border-charcoal-800", glare: "rgba(148, 163, 184, 0.1)" },
+            { stage: "Normal Usage", sub: "18 Months", icon: CheckCircle2, color: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-300 dark:border-emerald-500/30", glare: "rgba(16, 185, 129, 0.15)" },
+            { stage: "Battery Drain", sub: "5 Days Ago", icon: Battery, color: "text-amber-600 dark:text-amber-400", border: "border-amber-300 dark:border-amber-500/40", glare: "rgba(245, 158, 11, 0.15)" },
+            { stage: "Overheating", sub: "3 Days Ago", icon: Flame, color: "text-orange-600 dark:text-orange-400", border: "border-orange-300 dark:border-orange-500/40", glare: "rgba(249, 115, 22, 0.15)" },
+            { stage: "Random Shutdown", sub: "2 Days Ago", icon: AlertTriangle, color: "text-rose-600 dark:text-rose-400", border: "border-rose-300 dark:border-rose-500/40", glare: "rgba(244, 63, 94, 0.15)" },
+            { stage: "E-Mortem", sub: "Today", icon: Activity, color: "text-teal-600 dark:text-teal-400", border: "border-teal-300 dark:border-teal-500/40", glare: "rgba(20, 184, 166, 0.15)" },
+            { stage: "Repair Viable", sub: "Battery Service", icon: ShieldCheck, color: "text-emerald-700 dark:text-emerald-300", border: "border-emerald-400 dark:border-emerald-400", glare: "rgba(16, 185, 129, 0.2)" }
           ].map((item, idx) => (
-            <div
+            <TiltCard
               key={item.stage}
-              className={`p-3.5 rounded-2xl bg-slate-50 dark:bg-charcoal-900/70 border ${item.border} flex flex-col justify-between`}
+              maxTilt={7}
+              glare={true}
+              glareColor={item.glare}
+              glowBorder={true}
+              className={`p-3.5 rounded-2xl bg-slate-50 dark:bg-charcoal-900/70 border ${item.border} flex flex-col justify-between transition-all`}
             >
               <div className="flex items-center justify-between mb-2">
                 <item.icon className={`w-4 h-4 ${item.color}`} />
-                <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">0{idx + 1}</span>
+                <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 font-bold">0{idx + 1}</span>
               </div>
               <div>
                 <span className="text-xs font-bold text-slate-900 dark:text-white block leading-tight">
@@ -836,7 +853,7 @@ export default function Dashboard() {
                   {item.sub}
                 </span>
               </div>
-            </div>
+            </TiltCard>
           ))}
         </div>
       </div>
@@ -876,63 +893,63 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 4 Dynamic Pricing Cards */}
+          {/* 4 Dynamic Pricing Cards - Cyan, Violet, Teal, Emerald Spectrum */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Card 1: CURRENT REPLACEMENT PRICE */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-slate-200 dark:border-charcoal-800">
+            {/* Card 1: CURRENT REPLACEMENT PRICE - Electric Cyan */}
+            <TiltCard maxTilt={6} glare={true} glareColor="rgba(6, 182, 212, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-cyan-500/30 hover:border-cyan-400/60 shadow-xs transition-all">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-700 dark:text-cyan-400 font-bold">
                   Current Market Price
                 </span>
                 <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
               </div>
-              <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono">
+              <div className="text-xl sm:text-2xl font-black text-cyan-600 dark:text-cyan-300 font-mono">
                 {pricing.newMarketPriceFormatted || `₹${Number(pricing.newMarketPrice || 54999).toLocaleString("en-IN")}`}
               </div>
               <span className="text-[11px] text-slate-600 dark:text-slate-400 block mt-1">
                 Same / equivalent new device
               </span>
-            </div>
+            </TiltCard>
 
-            {/* Card 2: ESTIMATED DEVICE VALUE */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-slate-200 dark:border-charcoal-800">
+            {/* Card 2: ESTIMATED DEVICE VALUE - Royal Violet */}
+            <TiltCard maxTilt={6} glare={true} glareColor="rgba(139, 92, 246, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-violet-500/30 hover:border-violet-400/60 shadow-xs transition-all">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-violet-700 dark:text-violet-400 font-bold">
                   Estimated Device Value
                 </span>
-                <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold">Resale Fair</span>
+                <span className="text-[10px] font-mono text-violet-700 dark:text-violet-400 font-semibold px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20">Resale Fair</span>
               </div>
-              <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-300 font-mono">
+              <div className="text-xl sm:text-2xl font-black text-violet-600 dark:text-violet-300 font-mono">
                 {pricing.usedMarketValueFormatted || `₹${Number(pricing.usedMarketValue || 24000).toLocaleString("en-IN")}`}
               </div>
               <span className="text-[11px] text-slate-600 dark:text-slate-400 block mt-1">
                 Based on age + condition ({pricing.costToValueRatioPct ? `~${pricing.costToValueRatioPct}% repair ratio` : "market curve"})
               </span>
-            </div>
+            </TiltCard>
 
-            {/* Card 3: ESTIMATED REPAIR */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-teal-500/30">
+            {/* Card 3: ESTIMATED REPAIR - Vivid Teal */}
+            <TiltCard maxTilt={6} glare={true} glareColor="rgba(20, 184, 166, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-teal-500/30 hover:border-teal-400/60 shadow-xs transition-all">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-teal-700 dark:text-teal-400 font-bold">
                   Estimated Repair
                 </span>
-                <span className="text-[10px] font-mono text-teal-700 dark:text-teal-400 font-bold">Targeted</span>
+                <span className="text-[10px] font-mono text-teal-700 dark:text-teal-400 font-bold px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-500/20">Targeted</span>
               </div>
-              <div className="text-xl sm:text-2xl font-black text-teal-700 dark:text-teal-300 font-mono">
+              <div className="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-300 font-mono">
                 {pricing.repairEstimate || `₹${pricing.repairEstimateMin?.toLocaleString("en-IN")} – ₹${pricing.repairEstimateMax?.toLocaleString("en-IN")}`}
               </div>
               <span className="text-[11px] text-teal-800 dark:text-teal-300/90 block mt-1 truncate" title={pricing.repairComponent}>
                 For this reported issue ({pricing.repairComponent?.split(" ")[0] || "Component"})
               </span>
-            </div>
+            </TiltCard>
 
-            {/* Card 4: POTENTIAL REPLACEMENT COST AVOIDED */}
-            <div className="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30">
+            {/* Card 4: POTENTIAL REPLACEMENT COST AVOIDED - Neon Emerald */}
+            <TiltCard maxTilt={6} glare={true} glareColor="rgba(16, 185, 129, 0.15)" glowBorder={true} className="p-4 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/30 border border-emerald-400/40 dark:border-emerald-500/40 hover:border-emerald-400/80 shadow-xs transition-all">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-800 dark:text-emerald-400 font-bold">
                   Replacement Cost Avoided
                 </span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
               </div>
               <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
                 {pricing.replacementCostAvoidedFormatted || `₹${Number(pricing.replacementCostAvoided || 48000).toLocaleString("en-IN")}`}
@@ -940,7 +957,7 @@ export default function Dashboard() {
               <span className="text-[11px] text-emerald-800 dark:text-emerald-400/90 block mt-1 font-semibold">
                 {pricing.equityRetainedPct || 84}% device equity preserved
               </span>
-            </div>
+            </TiltCard>
           </div>
 
           {/* Visual Balance Bar */}
@@ -1084,13 +1101,15 @@ export default function Dashboard() {
           </div>
 
           <div className="pt-2">
-            <Link
-              to="/insights"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-charcoal-800 dark:hover:bg-charcoal-700 text-slate-800 dark:text-slate-200 transition-all border border-slate-200 dark:border-charcoal-700"
-            >
-              <span>Explore E-Waste Intelligence</span>
-              <ArrowRight className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-            </Link>
+            <MagneticButton strength={0.2} className="w-full">
+              <Link
+                to="/insights"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-charcoal-800 dark:hover:bg-charcoal-700 text-slate-800 dark:text-slate-200 transition-all border border-slate-200 dark:border-charcoal-700 hover:border-teal-500/40"
+              >
+                <span>Explore E-Waste Intelligence</span>
+                <ArrowRight className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+              </Link>
+            </MagneticButton>
           </div>
         </div>
       </div>

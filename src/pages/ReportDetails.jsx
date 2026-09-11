@@ -35,6 +35,7 @@ import StatusBadge from "../components/common/StatusBadge";
 import { useProducts } from "../context/ProductContext";
 import TiltCard from "../components/effects/TiltCard";
 import MagneticButton from "../components/effects/MagneticButton";
+import ParallaxElement from "../components/effects/ParallaxElement";
 import { computeClientMarketPricing } from "../utils/pricingService";
 import api from "../services/api";
 
@@ -244,7 +245,7 @@ export default function ReportDetails() {
       {/* ------------------------------------------------------------- */}
       {/* 2. DUAL SCORE RING EXECUTIVE HERO (WOW MOMENT)                */}
       {/* ------------------------------------------------------------- */}
-      <div className="e-panel-elevated p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-charcoal-800 bg-white dark:bg-gradient-to-br dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#070E14] shadow-sm dark:shadow-panel relative overflow-hidden">
+      <TiltCard maxTilt={2.5} glare={true} glareColor="rgba(20, 184, 166, 0.12)" glowBorder={true} className="e-panel-elevated p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-teal-500/30 bg-white dark:bg-gradient-to-br dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#070E14] shadow-sm dark:shadow-panel relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -276,44 +277,48 @@ export default function ReportDetails() {
             </div>
           </div>
 
-          {/* Right: Dual Large Score Rings */}
+          {/* Right: Dual Large Score Rings with Micro-Depth Parallax */}
           <div className="lg:col-span-6 flex flex-col sm:flex-row items-center justify-center gap-6 p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-slate-200 dark:border-charcoal-800">
             {/* Ring 1: Health Score */}
-            <div className="flex flex-col items-center space-y-2">
-              <ScoreRing
-                score={healthScore}
-                size={130}
-                strokeWidth={10}
-                label="Device Health"
-                sublabel="Current Integrity"
-              />
-              <div className="text-center">
-                <span className="text-[11px] font-mono font-bold text-amber-700 dark:text-amber-400">
-                  {healthScore < 50 ? "Critical Stress" : healthScore < 75 ? "Attention Required" : "Healthy State"}
-                </span>
+            <ParallaxElement depth={0.08}>
+              <div className="flex flex-col items-center space-y-2">
+                <ScoreRing
+                  score={healthScore}
+                  size={130}
+                  strokeWidth={10}
+                  label="Device Health"
+                  sublabel="Current Integrity"
+                />
+                <div className="text-center">
+                  <span className="text-[11px] font-mono font-bold text-amber-700 dark:text-amber-400">
+                    {healthScore < 50 ? "Critical Stress" : healthScore < 75 ? "Attention Required" : "Healthy State"}
+                  </span>
+                </div>
               </div>
-            </div>
+            </ParallaxElement>
 
             <div className="hidden sm:block w-px h-24 bg-slate-200 dark:bg-charcoal-800" />
 
             {/* Ring 2: Repairability Score */}
-            <div className="flex flex-col items-center space-y-2">
-              <ScoreRing
-                score={repairabilityScore}
-                size={130}
-                strokeWidth={10}
-                label="Repairability"
-                sublabel="Economic Viability"
-              />
-              <div className="text-center">
-                <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                  {repairabilityScore >= 70 ? "High Repair Viability" : "Moderate Viability"}
-                </span>
+            <ParallaxElement depth={0.08}>
+              <div className="flex flex-col items-center space-y-2">
+                <ScoreRing
+                  score={repairabilityScore}
+                  size={130}
+                  strokeWidth={10}
+                  label="Repairability"
+                  sublabel="Economic Viability"
+                />
+                <div className="text-center">
+                  <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                    {repairabilityScore >= 70 ? "High Repair Viability" : "Moderate Viability"}
+                  </span>
+                </div>
               </div>
-            </div>
+            </ParallaxElement>
           </div>
         </div>
-      </div>
+      </TiltCard>
 
       {/* ------------------------------------------------------------- */}
       {/* 3. ECONOMIC VERDICT BANNER (REPAIR FIRST VS REPLACE)          */}

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertOctagon, Flame, PowerOff, BatteryCharging, Droplets, ArrowRight, ShieldAlert, Sparkles, Smartphone, Laptop, Headphones } from "lucide-react";
 import { useProducts } from "../context/ProductContext";
+import TiltCard from "../components/effects/TiltCard";
+import MagneticButton from "../components/effects/MagneticButton";
 
 export default function EmergencyDiagnosis() {
   const navigate = useNavigate();
@@ -71,8 +73,11 @@ export default function EmergencyDiagnosis() {
           <AlertOctagon className="w-3.5 h-3.5" />
           <span>Emergency Diagnostic Protocol</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Device Suddenly Died?
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-2">
+          <span className="text-slate-900 dark:text-white">Device Suddenly</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 dark:from-rose-400 dark:via-pink-400 dark:to-amber-300">
+            Died?
+          </span>
         </h1>
         <p className="text-sm text-slate-600 dark:text-slate-300">
           Access E-Mortem from another phone, laptop, or browser to investigate sudden device death.
@@ -80,17 +85,19 @@ export default function EmergencyDiagnosis() {
       </div>
 
       {/* Signature Statement Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-50 via-white to-rose-100/30 dark:from-rose-950/30 dark:via-slate-900 dark:to-[#0A0D12] border border-rose-200 dark:border-rose-500/30 flex items-center justify-between gap-4 shadow-sm dark:shadow-none">
-        <div className="space-y-1">
-          <span className="text-xs font-mono text-rose-700 dark:text-rose-400 uppercase tracking-wider font-bold">
-            Electronic Forensics Mandate
-          </span>
-          <p className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-            «The device may have died. The investigation doesn't.»
-          </p>
+      <TiltCard maxTilt={4} glare={true} glareColor="rgba(244, 63, 94, 0.15)" glowBorder={true} className="rounded-2xl">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-50 via-white to-rose-100/30 dark:from-rose-950/30 dark:via-slate-900 dark:to-[#0A0D12] border border-rose-200 dark:border-rose-500/30 flex items-center justify-between gap-4 shadow-sm dark:shadow-none">
+          <div className="space-y-1">
+            <span className="text-xs font-mono text-rose-700 dark:text-rose-400 uppercase tracking-wider font-bold">
+              Electronic Forensics Mandate
+            </span>
+            <p className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              «The device may have died. The investigation doesn't.»
+            </p>
+          </div>
+          <ShieldAlert className="w-10 h-10 text-rose-600 dark:text-rose-400 shrink-0 opacity-80" />
         </div>
-        <ShieldAlert className="w-10 h-10 text-rose-600 dark:text-rose-400 shrink-0 opacity-80" />
-      </div>
+      </TiltCard>
 
       {/* Emergency Intake Form */}
       <form onSubmit={handleSubmit} className="graveyard-card p-6 sm:p-8 space-y-6">
@@ -223,13 +230,15 @@ export default function EmergencyDiagnosis() {
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full py-4 rounded-xl text-sm font-bold bg-rose-500 hover:bg-rose-400 text-white dark:text-slate-950 transition-all flex items-center justify-center gap-2 shadow-xl shadow-rose-500/20 active:scale-[0.99]"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Diagnose Failed Device →</span>
-        </button>
+        <MagneticButton strength={0.2} className="w-full">
+          <button
+            type="submit"
+            className="w-full py-4 rounded-xl text-sm font-bold bg-gradient-to-r from-rose-500 via-violet-600 to-rose-600 hover:from-rose-400 hover:to-violet-500 text-white transition-all flex items-center justify-center gap-2 shadow-xl shadow-rose-500/25 active:scale-[0.99]"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Diagnose Failed Device →</span>
+          </button>
+        </MagneticButton>
       </form>
     </div>
   );

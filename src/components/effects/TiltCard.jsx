@@ -3,12 +3,17 @@ import React, { useRef, useState, useCallback } from "react";
 export default function TiltCard({
   children,
   className = "",
-  maxTilt = 7,
-  scale = 1.015,
+  maxTilt = 6,
+  tiltMaxAngle,
+  scale = 1.012,
   glare = true,
+  glareColor = "rgba(6, 182, 212, 0.12)",
+  glowBorder = false,
   ...props
 }) {
   const cardRef = useRef(null);
+  const effectiveMaxTilt = tiltMaxAngle !== undefined ? tiltMaxAngle : maxTilt;
+
   const [tiltStyle, setTiltStyle] = useState({
     transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
     transition: "transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)"
@@ -26,12 +31,12 @@ export default function TiltCard({
       const centerY = rect.height / 2;
 
       // Calculate tilt angles
-      const rotateX = ((y - centerY) / centerY) * -maxTilt;
-      const rotateY = ((x - centerX) / centerX) * maxTilt;
+      const rotateX = ((y - centerY) / centerY) * -effectiveMaxTilt;
+      const rotateY = ((x - centerX) / centerX) * effectiveMaxTilt;
 
       setTiltStyle({
         transform: `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(${scale}, ${scale}, ${scale})`,
-        transition: "transform 0.1s ease-out"
+        transition: "transform 0.08s ease-out"
       });
 
       if (glare) {
@@ -42,7 +47,7 @@ export default function TiltCard({
         });
       }
     },
-    [maxTilt, scale, glare]
+    [effectiveMaxTilt, scale, glare]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -61,18 +66,20 @@ export default function TiltCard({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={tiltStyle}
-      className={`relative will-change-transform transform-gpu ${className}`}
+      className={`relative will-change-transform transform-gpu transition-shadow duration-300 ${
+        glowBorder ? "hover:shadow-glow-card-hover" : ""
+      } ${className}`}
       {...props}
     >
       {children}
 
-      {/* Dynamic Specular Spotlight Glare */}
+      {/* Dynamic Specular Spotlight Glare with iridescent tone */}
       {glare && (
         <div
-          className="pointer-events-none absolute inset-0 rounded-[inherit] transition-opacity duration-300 overflow-hidden"
+          className="pointer-events-none absolute inset-0 rounded-[inherit] transition-opacity duration-300 overflow-hidden z-10"
           style={{
             opacity: glarePos.opacity,
-            background: `radial-gradient(circle 280px at ${glarePos.x}% ${glarePos.y}%, rgba(20, 184, 166, 0.10), transparent 70%)`
+            background: `radial-gradient(circle 300px at ${glarePos.x}% ${glarePos.y}%, ${glareColor}, transparent 70%)`
           }}
         />
       )}

@@ -33,6 +33,9 @@ import {
   DollarSign
 } from "lucide-react";
 import { useProducts } from "../context/ProductContext";
+import TiltCard from "../components/effects/TiltCard";
+import MagneticButton from "../components/effects/MagneticButton";
+import ParallaxElement from "../components/effects/ParallaxElement";
 
 export default function Diagnose() {
   const navigate = useNavigate();
@@ -229,22 +232,29 @@ export default function Diagnose() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span>Begin Your E-Mortem</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 text-teal-800 dark:text-teal-300 text-xs font-mono font-bold uppercase mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+            <span>Hardware Intake Protocol</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-2">
+            <span className="text-slate-900 dark:text-white">Begin Your</span>
+            <span className="text-gradient-aurora">E-Mortem</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
             “Tell us what your device has been experiencing. We'll investigate the symptoms and generate a preliminary electronic postmortem.”
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleAutofillDemo}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all self-start sm:self-auto shadow-sm"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>⚡ Try Demo (Galaxy S23)</span>
-        </button>
+        <MagneticButton strength={0.25}>
+          <button
+            type="button"
+            onClick={handleAutofillDemo}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white shadow-md shadow-teal-500/20 transition-all self-start sm:self-auto active:scale-95"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>⚡ Try Demo (Galaxy S23)</span>
+          </button>
+        </MagneticButton>
       </div>
 
       {/* Progress Bar */}
@@ -319,19 +329,29 @@ export default function Diagnose() {
                 const Icon = dt.icon;
                 const isSelected = formData.type === dt.label;
                 return (
-                  <button
-                    type="button"
+                  <TiltCard
                     key={dt.label}
-                    onClick={() => setFormData({ ...formData, type: dt.label })}
-                    className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
-                      isSelected
-                        ? "bg-emerald-50 dark:bg-emerald-500/15 border-emerald-500 dark:border-emerald-400 text-emerald-800 dark:text-emerald-300 shadow-sm dark:shadow-glow-emerald"
-                        : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700"
-                    }`}
+                    maxTilt={7}
+                    glare={true}
+                    glareColor={isSelected ? "rgba(16, 185, 129, 0.2)" : "rgba(6, 182, 212, 0.12)"}
+                    glowBorder={true}
+                    className="rounded-2xl"
                   >
-                    <Icon className="w-6 h-6" />
-                    <span className="text-xs font-semibold text-center">{dt.label}</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, type: dt.label })}
+                      className={`w-full p-4 rounded-2xl border flex flex-col items-center justify-center gap-2.5 transition-all ${
+                        isSelected
+                          ? "bg-teal-50/90 dark:bg-emerald-500/15 border-teal-500 dark:border-emerald-400 text-teal-800 dark:text-emerald-300 shadow-sm dark:shadow-glow-emerald"
+                          : "bg-slate-50 dark:bg-charcoal-900/60 border-slate-200 dark:border-charcoal-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-charcoal-700"
+                      }`}
+                    >
+                      <div className={`p-2.5 rounded-xl ${isSelected ? "bg-teal-100 dark:bg-emerald-500/20 text-teal-700 dark:text-emerald-300" : "bg-slate-200 dark:bg-charcoal-800 text-slate-600 dark:text-slate-400"}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-center">{dt.label}</span>
+                    </button>
+                  </TiltCard>
                 );
               })}
             </div>
@@ -827,36 +847,43 @@ export default function Diagnose() {
         {!isAnalyzing && (
           <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between mt-6">
             {step > 1 ? (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-800 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </button>
+              <MagneticButton strength={0.2}>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-800 transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </button>
+              </MagneticButton>
             ) : (
               <div />
             )}
 
             {step < 5 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-md shadow-emerald-500/20"
-              >
-                <span>Continue</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <MagneticButton strength={0.25}>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white transition-all shadow-md shadow-teal-500/20 active:scale-95"
+                >
+                  <span>Continue</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </MagneticButton>
             ) : (
-              <button
-                type="button"
-                onClick={runAnalysis}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-md shadow-emerald-500/20"
-              >
-                <span>🔍 Perform E-Mortem</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <MagneticButton strength={0.25}>
+                <button
+                  type="button"
+                  onClick={runAnalysis}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white transition-all shadow-md shadow-teal-500/25 active:scale-95"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>🔍 Perform E-Mortem</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </MagneticButton>
             )}
           </div>
         )}

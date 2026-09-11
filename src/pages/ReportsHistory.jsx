@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import StatusBadge from "../components/common/StatusBadge";
 import { useProducts } from "../context/ProductContext";
+import MagneticButton from "../components/effects/MagneticButton";
 import api from "../services/api";
 
 export default function ReportsHistory() {
@@ -35,25 +36,28 @@ export default function ReportsHistory() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 uppercase">
+            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-500/10 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-500/30 uppercase">
               Forensic Archives
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span>E-Mortem Reports</span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+            <span className="text-slate-900 dark:text-white">E-Mortem</span>
+            <span className="text-gradient-aurora">Reports</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
             Past electronic postmortems, root cause probability models, and repair shop second opinions.
           </p>
         </div>
 
-        <Link
-          to="/diagnose"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-md shadow-emerald-500/20 active:scale-95 self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Diagnosis</span>
-        </Link>
+        <MagneticButton strength={0.25}>
+          <Link
+            to="/diagnose"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white transition-all shadow-md shadow-teal-500/20 active:scale-95 self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Diagnosis</span>
+          </Link>
+        </MagneticButton>
       </div>
 
       {/* Search & Filter Bar */}

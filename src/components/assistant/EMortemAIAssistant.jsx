@@ -915,21 +915,26 @@ export default function EMortemAIAssistant() {
 
   return (
     <div className="fixed bottom-6 right-6 z-40">
-      {/* Floating Trigger Button */}
+      {/* Floating Trigger Button with Holographic Multi-Color Glow */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-950 font-bold text-xs sm:text-sm shadow-glow-teal hover:scale-105 active:scale-95 transition-all"
+          className="flex items-center gap-2.5 px-5 py-3.5 rounded-full bg-gradient-to-r from-teal-400 via-cyan-400 to-violet-500 hover:from-teal-300 hover:via-cyan-300 hover:to-violet-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-glow-multi hover:scale-105 active:scale-95 transition-all shimmer-border group"
         >
-          <Bot className="w-5 h-5" />
-          <span>E-Mortem AI</span>
-          <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping"></span>
+          <div className="w-6 h-6 rounded-full bg-slate-950 text-teal-400 flex items-center justify-center group-hover:rotate-12 transition-transform shadow-inner">
+            <Bot className="w-4 h-4" />
+          </div>
+          <span className="font-extrabold tracking-wide">E-Mortem AI</span>
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-950 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-950" />
+          </span>
         </button>
       )}
 
       {/* Assistant Modal / Drawer */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[580px] bg-white/95 dark:bg-charcoal-950/95 border border-slate-200 dark:border-teal-500/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl">
+        <div className="w-[360px] sm:w-[420px] h-[580px] bg-white/95 dark:bg-charcoal-950/95 border border-teal-500/30 dark:border-teal-500/40 rounded-3xl shadow-glow-multi flex flex-col overflow-hidden backdrop-blur-xl">
           {/* Header */}
           <div className="p-3.5 bg-slate-50 dark:bg-gradient-to-r dark:from-charcoal-900 dark:to-charcoal-950 border-b border-slate-200 dark:border-charcoal-800 flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
