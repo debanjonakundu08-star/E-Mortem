@@ -83,10 +83,10 @@ export const api = {
   },
 
   // AI Assistant endpoint
-  async askAssistant(message) {
+  async askAssistant(message, history = [], context = null) {
     return request("/api/assistant", {
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, history, context }),
     });
   },
 };

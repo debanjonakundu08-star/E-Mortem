@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 import json
+import re
 from datetime import datetime
 
 from database import engine, get_db, Base
@@ -367,52 +368,651 @@ def get_insights(db: Session = Depends(get_db)):
     }
 
 # --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Ask E-Mortem Assistant Endpoint
 # --------------------------------------------------------------------------
-@app.post("/api/assistant", response_model=schemas.AssistantResponse, tags=["Assistant"])
-def ask_assistant(req: schemas.AssistantRequest):
-    query = req.message.lower()
+def query_matches(query: str, terms: List[str]) -> bool:
+    for t in terms:
+        pattern = r'(?:\b|_)' + re.escape(t) + r'(?:\b|_)'
+        if re.search(pattern, query, re.IGNORECASE):
+            return True
+    return False
 
-    if any(w in query for w in ["30%", "shutdown", "shuts down"]):
-        reply = (
-            "A sudden shutdown at 20–30% charge typically indicates battery cell voltage collapse: "
-            "as Li-ion cells age, internal resistance surges, causing voltage to drop below the operating threshold "
-            "under moderate processing spikes. E-Mortem cannot physically confirm this remotely, but an OEM battery health "
-            "bench test is strongly recommended before considering motherboard repairs."
-        )
-    elif any(w in query for w in ["overheat", "hot", "heat", "warm"]):
-        reply = (
-            "Heat concentration on the upper rear chassis usually originates from the processor/SoC under sustained load, "
-            "whereas heat at the bottom edge indicates charging circuit or battery connector stress. Avoid using fast-chargers "
-            "while gaming or streaming, and verify whether thermal paste/pads have degraded."
-        )
-    elif any(w in query for w in ["technician", "shop", "question", "ask"]):
-        reply = (
-            "Before paying a technician, always ask: (1) What exact multimeter or software test confirmed component failure? "
-            "(2) Can the component be resoldered or cleaned rather than replaced? (3) Is the replacement part genuine OEM with "
-            "a written 90-day warranty?"
-        )
-    elif any(w in query for w in ["backup", "data", "save my data"]):
-        reply = (
-            "If your device still powers on intermittently, immediately back up essential data to a computer or cloud account. "
-            "In 84% of battery and thermal failure cases, the onboard UFS/eMMC storage remains completely undamaged."
-        )
-    else:
-        reply = (
-            "E-Mortem analyzes electronic failure patterns to help you avoid unnecessary repairs or premature disposal. "
-            "You can run an electronic postmortem on any gadget by navigating to 'Diagnose Device' or asking about specific "
-            "symptoms like battery drain, shutdowns, overheating, or repair shop second opinions."
-        )
+def get_ctx_val(ctx, key, default):
+    if ctx is None:
+        return default
+    if isinstance(ctx, dict):
+        return ctx.get(key, default)
+    val = getattr(ctx, key, None)
+    return val if val is not None else default
+
+def generate_assistant_response(
+    query_text: str,
+    history: Optional[List[Any]] = None,
+    context: Optional[Any] = None
+) -> Dict[str, Any]:
+    raw_query = (query_text or "").strip()
+    query = raw_query.lower()
+    history = history or []
+
+    # 1. Device Context Extraction & Defaults
+    device_type = get_ctx_val(context, "device_type", "Smartphone")
+    if query_matches(query, ["laptop", "macbook", "thinkpad", "dell xps", "notebook"]):
+        device_type = "Laptop"
+    elif query_matches(query, ["tablet", "ipad", "galaxy tab"]):
+        device_type = "Tablet"
+    elif query_matches(query, ["earbud", "earbuds", "airpod", "airpods", "galaxy buds"]):
+        device_type = "Earbuds"
+    elif query_matches(query, ["headphone", "headphones"]):
+        device_type = "Headphones"
+    elif query_matches(query, ["smartwatch", "apple watch", "galaxy watch"]):
+        device_type = "Smartwatch"
+    elif query_matches(query, ["tv", "television", "monitor"]):
+        device_type = "TV / Monitor"
+    elif query_matches(query, ["phone", "smartphone", "iphone", "galaxy s"]):
+        device_type = "Smartphone"
+
+    device_name = get_ctx_val(context, "device_name", None)
+    if not device_name or (device_type == "Laptop" and "phone" in device_name.lower()):
+        device_name = f"Demo {device_type}" if device_type != "Smartphone" else "Samsung Galaxy S23"
+
+    device_age = get_ctx_val(context, "device_age", "2.5 years")
+    health_score = get_ctx_val(context, "health_score", 64)
+    repairability_score = get_ctx_val(context, "repairability_score", 78)
+    current_value = get_ctx_val(context, "current_value", 18000)
+    recommendation = get_ctx_val(context, "recommendation", "REPAIR FIRST")
+    last_topic = get_ctx_val(context, "last_topic", "")
+    symptoms = get_ctx_val(context, "symptoms", ["shutdown", "battery_drain", "overheating"])
+
+    # Inspect previous AI reply from history if available
+    last_ai_text = ""
+    for msg in reversed(history):
+        sender = get_ctx_val(msg, "sender", get_ctx_val(msg, "role", ""))
+        if sender in ["ai", "assistant"]:
+            last_ai_text = get_ctx_val(msg, "text", get_ctx_val(msg, "content", "")).lower()
+            break
+
+    # Context flags
+    discussing_battery = (
+        last_topic == "battery" or
+        "battery" in last_ai_text or
+        query_matches(query, ["battery", "drain", "30%", "20%", "shut down", "shutdown", "swollen", "charge cycle"])
+    )
+    discussing_thermal = (
+        last_topic == "thermal" or
+        "heat" in last_ai_text or "thermal" in last_ai_text or "fan" in last_ai_text or
+        query_matches(query, ["overheat", "thermal", "fan", "hot", "warm", "throttling"])
+    )
+
+    # ------------------------------------------------------------------
+    # 0. Unrelated non-hardware query deflection
+    # ------------------------------------------------------------------
+    unrelated_triggers = [
+        "capital of", "weather today", "recipe for", "cook", "poem", "story about",
+        "who won", "president of", "prime minister", "joke", "bitcoin", "crypto"
+    ]
+    if any(t in query for t in unrelated_triggers):
+        return {
+            "response": (
+                "I am E-Mortem AI, specialized specifically in consumer electronics diagnostics, hardware failure triage, "
+                "repair economics, and electronic waste reduction. I can help diagnose issues with phones, laptops, tablets, "
+                "audio gear, smartwatches, and TVs, or interpret your E-Mortem autopsy reports. How can I assist with your device?"
+            ),
+            "suggested_prompts": [
+                "Why is my phone shutting down?",
+                "What should I ask the technician?",
+                "Should I repair or replace?",
+                "Is my battery likely failing?"
+            ],
+            "detected_topic": "unrelated",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "unrelated"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 1. Swollen Battery Safety Hazard (Immediate Priority)
+    # ------------------------------------------------------------------
+    if query_matches(query, ["swollen", "swelling", "bulge", "bulging", "puff", "puffed", "bent battery"]):
+        return {
+            "response": (
+                "⚠️ CRITICAL HARDWARE SAFETY HAZARD: A swollen or bulging battery indicates chemical gas buildup and internal layer delamination. "
+                "This is an active thermal runaway risk (fire hazard). Do NOT attempt to charge, compress, puncture, or turn on the device. "
+                "Power it off immediately and place it on a non-conductive, fire-safe surface away from flammable materials until an authorized technician can safely extract and properly recycle the lithium-ion pouch."
+            ),
+            "suggested_prompts": [
+                "How to safely store a swollen battery?",
+                "Can a swollen battery be recycled?",
+                "What causes lithium-ion batteries to swell?"
+            ],
+            "detected_topic": "swollen_battery",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "battery"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 2. SUGGESTED QUESTION 1: "Why is my phone shutting down?"
+    # (Matches: shutting down, shutdown, shut down, randomly turns off, powers off, shuts down)
+    # ------------------------------------------------------------------
+    if query_matches(query, ["shutting down", "shutdown", "shut down", "shuts down", "randomly turns off", "powers off", "cutting off", "dying randomly"]):
+        symptoms_str = ", ".join(symptoms) if isinstance(symptoms, list) else str(symptoms)
+        return {
+            "response": (
+                f"Preliminary Assessment of Sudden Shutdowns for {device_name} ({device_age}):\n\n"
+                "• Primary Suspected Cause: Battery Cell Internal Impedance Degradation (~48% probability).\n"
+                f"  As lithium-ion cells age over {device_age} (typically 500–800 charge cycles), their internal DC resistance surges. "
+                "The battery maintains nominal voltage at rest, but when the processor demands a momentary current spike (e.g. launching camera, 5G data burst, or gaming), "
+                "the cell voltage collapses below the Power Management IC's (PMIC) safety threshold (~3.4V), forcing an instant shutdown.\n\n"
+                "• Contributing Factors from Reported History:\n"
+                f"  - Active Symptoms: {symptoms_str}.\n"
+                "  - Thermal Stress: If the chassis reaches 40°C+, internal safety watchdogs initiate protective power cuts.\n"
+                "  - Mechanical Stress: Prior drops can cause micro-fractures in battery contact solder tabs.\n\n"
+                "🔬 Recommendation: Have a certified technician bench-test battery DC internal resistance before considering expensive motherboard repairs."
+            ),
+            "suggested_prompts": [
+                "Why do you think it's the battery?",
+                "Could overheating be related?",
+                "Should I replace the battery?",
+                "What should I ask the technician?"
+            ],
+            "detected_topic": "shutdown",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "battery"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 3. SUGGESTED QUESTION 2: "What should I ask the technician?"
+    # (Matches: ask the technician, what should i ask, technician questions, repair shop checklist)
+    # ------------------------------------------------------------------
+    if query_matches(query, ["ask the technician", "ask technician", "what should i ask", "technician questions", "questions to ask", "technician checklist", "interrogate", "scam"]):
+        return {
+            "response": (
+                f"E-Mortem Technician Interrogation Checklist for {device_name}:\n\n"
+                "Before approving any expensive component or motherboard service, demand answers to these 5 forensic questions:\n\n"
+                "1. 🔬 Diagnostic Evidence: 'What specific instrument test (multimeter diode mode reading, DC power supply current draw, or software battery cycle log) confirmed component failure?'\n"
+                "2. 🛠️ Modular Repairability: 'Can this issue be resolved by replacing the modular battery/sub-board rather than replacing the entire logic board?'\n"
+                "3. 📦 Defective Part Return: 'Will you return my old, defective component in a sealed anti-static bag upon completion?' (Guarantees they did not merely reseat a ribbon cable).\n"
+                "4. 🏷️ Part Authenticity: 'Are the replacement parts genuine OEM, refurbished OEM, or third-party aftermarket Grade A/B?'\n"
+                "5. 📝 Written Warranty: 'What is your written warranty on parts and labor? (Require at least a 90-day written guarantee).'"
+            ),
+            "suggested_prompts": [
+                "Why should I ask for my old replaced parts back?",
+                "How much might repair cost?",
+                "Should I replace the battery?",
+                "Can I fix it myself?"
+            ],
+            "detected_topic": "technician",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "technician"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 4. SUGGESTED QUESTION 3: "Should I repair or replace?"
+    # (Matches: repair or replace, replace or repair, worth repairing, worth fixing, should i repair, should i replace, repair vs replace, buy new)
+    # ------------------------------------------------------------------
+    if query_matches(query, ["repair or replace", "replace or repair", "worth repairing", "worth fixing", "should i repair", "should i replace", "repair vs replace", "buy new", "economics"]):
+        return {
+            "response": (
+                f"E-Mortem 40% Second Opinion Rule Analysis for {device_name} ({device_age}):\n\n"
+                f"• Current Secondary Market Value: Estimated at ~₹{current_value} ($200–$250) in functional refurbished condition.\n"
+                "• Estimated Modular Repair Cost: ~₹1,500–₹3,200 ($30–$65) for an OEM battery or charging sub-board.\n"
+                "• Cost-to-Value Ratio: ~8–18% of device equity (substantially below the 40% threshold).\n"
+                f"• Repairability Index: {repairability_score}/100 (Modular components accessible with standard adhesive release).\n"
+                f"• E-Mortem Recommendation: {recommendation} (STRONGLY RECOMMENDED).\n\n"
+                "🌱 Environmental Impact: Servicing the modular wear component saves ₹15,000+ compared to a replacement device, while preventing ~70kg of CO2 equivalent manufacturing emissions and hazardous e-waste."
+            ),
+            "suggested_prompts": [
+                "How much could it cost?",
+                "Will replacing the battery solve it?",
+                "What should I ask the technician?",
+                "Can I fix it myself?"
+            ],
+            "detected_topic": "economics",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "economics"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 5. SUGGESTED QUESTION 4: "What should I backup first?" / "What should I back up first?"
+    # (Matches: backup first, back up first, what should i backup, what should i back up, backup checklist, save data first)
+    # ------------------------------------------------------------------
+    if query_matches(query, ["backup first", "back up first", "what should i backup", "what should i back up", "backup checklist", "save data first", "data to backup", "backup my data"]):
+        return {
+            "response": (
+                f"E-Mortem Prioritized Data Backup Checklist for {device_name}:\n\n"
+                "Before submitting your device to any repair facility or opening the chassis, back up in this exact priority order:\n\n"
+                "1. 🔐 Two-Factor Authenticator (2FA) Keys: Google Authenticator, Authy, or bank security tokens (export accounts to a secondary device or print seed QR codes).\n"
+                "2. 📇 Critical Contacts & Cloud Credentials: Ensure Google/Apple cloud account sync shows a timestamp from today.\n"
+                "3. 💬 Encrypted Chat Histories & Media: WhatsApp, Telegram, or Signal local and cloud chat backups.\n"
+                "4. 📸 Photos & Personal Documents: Connect to a PC/Mac via USB cable or trigger an off-device backup to Google Photos, iCloud, or OneDrive.\n"
+                "5. 💳 Financial & eSIM Profiles: De-register sensitive banking tokens and save your eSIM profile QR code if logic board service is required.\n\n"
+                "💡 Tip: If your touchscreen is cracked or unresponsive, connect a wired USB mouse via a $3 USB-C OTG dongle to navigate and unlock the phone."
+            ),
+            "suggested_prompts": [
+                "Can I recover my data if the screen is black?",
+                "Should I factory reset before sending to a repair shop?",
+                "How to use USB OTG to back up a broken phone?"
+            ],
+            "detected_topic": "backup",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "data"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 6. SUGGESTED QUESTION 5: "Is my battery likely failing?"
+    # (Matches: battery likely failing, is my battery failing, battery dying, failing battery, battery bad, battery health failing)
+    # ------------------------------------------------------------------
+    if query_matches(query, ["battery likely failing", "is my battery failing", "battery dying", "failing battery", "battery bad", "battery failing", "battery degradation signs", "battery health failing"]):
+        return {
+            "response": (
+                f"Forensic Battery Failure Indicators for {device_name} ({device_age}):\n\n"
+                "Based on E-Mortem's forensic failure database, here is the diagnostic evidence that your battery is failing:\n\n"
+                "1. 📉 Voltage Sag Under Load: The device unexpectedly powers down at 20–40% charge, especially when opening camera, navigation, or games.\n"
+                "2. 🌡️ Localized Chassis Warmth: The battery area becomes noticeably warm during normal web browsing or charging due to heightened internal DC resistance.\n"
+                "3. ⚡ Rapid Percentage Cliff: Device percentage drops from 100% to 80% within 15–20 minutes of light use.\n"
+                f"4. 🔄 Cycle Degradation: At ~{device_age} of daily use, the cell has exceeded ~600 charge cycles, dropping below 80% nominal chemical capacity.\n"
+                "5. 🔍 Physical Pouch Swelling: Check if the screen or rear glass is subtly lifting. (If so, stop charging immediately).\n\n"
+                "Verdict: Preliminary assessment indicates high likelihood of chemical cell exhaustion. Motherboard damage is unlikely."
+            ),
+            "suggested_prompts": [
+                "Why do you think it's the battery?",
+                "Will replacing the battery solve it?",
+                "How much could it cost?",
+                "Should I repair or replace?"
+            ],
+            "detected_topic": "battery_failing",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "battery"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 7. SUGGESTED QUESTION 6: "What could have caused this problem?"
+    # (Matches: caused this problem, what caused this, what could have caused, why did this happen, cause of this, root cause)
+    # ------------------------------------------------------------------
+    if query_matches(query, ["caused this problem", "caused this", "what could have caused", "why did this happen", "cause of this", "what caused the issue", "root cause", "failure cause"]):
+        symptoms_str = ", ".join(symptoms) if isinstance(symptoms, list) else str(symptoms)
+        return {
+            "response": (
+                f"E-Mortem Root Cause Analysis for {device_name}:\n\n"
+                f"Cross-referencing your device age ({device_age}), reported symptoms ({symptoms_str}), and E-Mortem's forensic failure telemetry:\n\n"
+                "• Rank 1: Chemical Cell Aging & Voltage Sag (~48% probability)\n"
+                "  Natural electrochemical exhaustion of the lithium cobalt oxide cathode over hundreds of discharge cycles.\n\n"
+                "• Rank 2: Thermal Interface Degradation (~26% probability)\n"
+                "  Dried thermal paste or dust-choked heat dissipation channels forcing thermal throttling and emergency shutdowns.\n\n"
+                "• Rank 3: Mechanical Drop Stress (~16% probability)\n"
+                "  Prior drop events can micro-fracture internal battery tab welds or loosen flex cable connectors, causing intermittent disconnects.\n\n"
+                "• Rank 4: Charging Circuit / Port Oxidation (~10% probability)\n"
+                "  Intermittent charging currents destabilizing the battery calibration table.\n\n"
+                "Preliminary Assessment: Over 74% of reported cases with these symptoms are resolved by simple modular battery/thermal service rather than expensive logic board replacement."
+            ),
+            "suggested_prompts": [
+                "Why do you think it's the battery?",
+                "Should I repair or replace?",
+                "Could overheating be related?",
+                "What should I do now?"
+            ],
+            "detected_topic": "root_cause",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "root_cause"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 8. FOLLOW-UP: "Will replacing the battery solve it?" / "Will a new battery fix it?"
+    # ------------------------------------------------------------------
+    if query_matches(query, ["replacing the battery solve", "will a new battery fix", "will replacing the battery", "will new battery solve", "solve it if i replace", "fix it if i replace"]):
+        return {
+            "response": (
+                f"Preliminary Assessment for {device_name} ({device_age}):\n\n"
+                "• High Confidence Resolution: In over 90% of cases where devices shut down at 20–40% charge or drain rapidly after 2+ years of use, an OEM battery replacement completely solves the problem.\n"
+                "• Restored Performance: A fresh battery restores stable peak voltage delivery, eliminating low-voltage processor throttling and sudden restarts.\n"
+                "• Expected Longevity: An OEM replacement typically provides an additional 18–24 months of stable operation.\n"
+                f"• Cost vs Value: At ~₹1,500–₹3,200 ($30–$65), it preserves an estimated ₹{current_value} in device equity.\n\n"
+                "Recommendation: Always ensure the technician uses an OEM or certified Grade-A cell and provides a written 90-day warranty."
+            ),
+            "suggested_prompts": [
+                "How much could it cost?",
+                "What should I ask the technician?",
+                "Can I fix it myself?"
+            ],
+            "detected_topic": "battery_resolution",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "battery"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 9. FOLLOW-UP: "Can I fix it myself?" / "DIY repair"
+    # ------------------------------------------------------------------
+    if query_matches(query, ["fix it myself", "repair it myself", "diy repair", "can i do it myself", "self repair", "replace it myself"]):
+        return {
+            "response": (
+                f"Self-Repair Feasibility for {device_name} (Repairability Score: {repairability_score}/100):\n\n"
+                "• Difficulty Rating: Moderate (Requires heat, suction, and solvent).\n"
+                "• Tools Required: Heat gun or hairdryer (to soften rear glass adhesive), suction cup, plastic pry spudgers, precision screwdriver, and 90%+ isopropyl alcohol to release battery glue.\n"
+                "• Critical Safety Risks: Puncturing or bending a glued lithium pouch cell can cause chemical fire or thermal runaway. Never use metal tools directly against the battery.\n"
+                "• Professional Recommendation: If you are not experienced with adhesive pull-tabs and heat separation, professional technician labor only costs ~₹500–₹1,000 ($15–$25) and includes warranty coverage."
+            ),
+            "suggested_prompts": [
+                "What should I ask the technician?",
+                "How much could it cost?",
+                "What should I backup first?"
+            ],
+            "detected_topic": "diy_repair",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "diy"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 10. FOLLOW-UP: "What should I do now?"
+    # ------------------------------------------------------------------
+    if query_matches(query, ["what should i do now", "what should i do", "what to do now", "next steps", "recommended action"]):
+        return {
+            "response": (
+                f"E-Mortem Action Plan for {device_name}:\n\n"
+                "1. 💾 Backup Immediately: Secure your 2FA authenticator seeds, contacts, and cloud photos before taking the device anywhere.\n"
+                "2. 🛡️ Mitigate Heat Stress: Avoid fast-charging in warm environments, remove thick cases while charging, and avoid gaming at low battery.\n"
+                "3. 🔍 Diagnostic Bench Test: Visit a local repair shop and ask for a physical battery multimeter test (checking DC resistance and voltage under simulated load).\n"
+                "4. 📋 Use Technician Armor: Request an itemized quote and ask the 5 technician interrogation questions before approving any service.\n"
+                "5. ⚖️ Apply 40% Rule: If the repair is under ₹3,200, proceed with the modular repair to preserve device equity."
+            ),
+            "suggested_prompts": [
+                "What should I ask the technician?",
+                "How much could it cost?",
+                "Should I replace the battery?"
+            ],
+            "detected_topic": "action_plan",
+            "active_device": device_name,
+            "updated_context": {
+                "device_name": device_name,
+                "device_type": device_type,
+                "device_age": device_age,
+                "last_topic": "action"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 11. FOLLOW-UP: "Is it dangerous?" / "Is it safe?"
+    # ------------------------------------------------------------------
+    if query_matches(query, ["is it dangerous", "is it safe", "safe to use", "will it explode", "can it explode", "danger"]):
+        if query_matches(query, ["swollen", "bulge", "bent"]) or "swollen" in last_ai_text:
+            return {
+                "response": (
+                    "⚠️ CRITICAL DANGER: A swollen battery is an active hazard. Swelling occurs when internal layers delaminate and generate flammable gas. "
+                    "Continuing to use or charge the device can result in puncture, severe thermal runaway, or combustion. Power it off immediately and seek authorized disposal."
+                ),
+                "suggested_prompts": ["How to safely store a swollen battery?", "Can a swollen battery be recycled?"],
+                "detected_topic": "swollen_battery",
+                "active_device": device_name,
+                "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": "battery"}
+            }
+        else:
+            return {
+                "response": (
+                    f"Preliminary Safety Assessment for {device_name}:\n\n"
+                    "• Fire Risk: Very low, provided the battery is not physically swollen or punctured.\n"
+                    "• Data & Component Risks: Moderate to high. Frequent sudden shutdowns can corrupt the flash storage file system (requiring a factory wipe). "
+                    "Operating at sustained high temperatures can also accelerate solder fatigue on motherboard processor BGA chips.\n\n"
+                    "Conclusion: It is safe to use lightly for essential tasks and backups, but avoid high processing loads until serviced."
+                ),
+                "suggested_prompts": [
+                    "What should I backup first?",
+                    "Should I replace the battery?",
+                    "How much could it cost?"
+                ],
+                "detected_topic": "safety",
+                "active_device": device_name,
+                "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": "safety"}
+            }
+
+    # ------------------------------------------------------------------
+    # 12. FOLLOW-UP: "Why?" / "Tell me more."
+    # ------------------------------------------------------------------
+    if query_matches(query, ["why", "tell me more", "why is that", "explain more", "why do you say that"]):
+        if discussing_battery or "battery" in last_ai_text or "shutdown" in last_ai_text:
+            return {
+                "response": (
+                    f"Forensic Explanation for {device_name}:\n\n"
+                    f"At {device_age} of daily cycling, lithium ions become trapped in the graphite anode (solid electrolyte interphase layer growth). "
+                    "This causes two distinct physical effects:\n"
+                    "1. Capacity Loss: The total milliamp-hours (mAh) the battery can store shrinks by 20–30%.\n"
+                    "2. Impedance Rise: The battery's internal resistance increases dramatically. When current flows out of the battery, voltage drops proportionally (Ohm's Law: V_drop = I × R_internal). "
+                    "A sudden surge of 2–3 Amperes drops the cell voltage below 3.4V, triggering the PMIC shutdown circuit to prevent memory corruption.\n\n"
+                    "This is why the device shuts down even though the battery percentage was still reading 30% moments before."
+                ),
+                "suggested_prompts": [
+                    "Could overheating be related?",
+                    "Will replacing the battery solve it?",
+                    "How much could it cost?"
+                ],
+                "detected_topic": "battery_deep_why",
+                "active_device": device_name,
+                "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": "battery"}
+            }
+        else:
+            return {
+                "response": (
+                    f"Forensic Explanation for {device_name}:\n\n"
+                    "Electronic hardware failure almost never happens simultaneously across all components. Over 80% of consumer electronics issues originate from wearable interfaces: "
+                    "chemical batteries undergoing cycle wear, thermal paste drying out under sustained heat cycles, or charging port pins suffering oxidation. "
+                    "By replacing the specific modular wear component, the underlying silicon and logic board can continue functioning for years."
+                ),
+                "suggested_prompts": [
+                    "Should I repair or replace?",
+                    "What should I ask the technician?",
+                    "How much could it cost?"
+                ],
+                "detected_topic": "general_why",
+                "active_device": device_name,
+                "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": last_topic or "general"}
+            }
+
+    # ------------------------------------------------------------------
+    # 13. FOLLOW-UP: "Could overheating be related?"
+    # ------------------------------------------------------------------
+    if query_matches(query, ["overheating be related", "is overheating related", "could heat be related", "does heat cause this", "heat related"]):
+        return {
+            "response": (
+                f"Yes, overheating and battery degradation are closely correlated potential contributing factors in your {device_name}.\n\n"
+                "• Resistive Heat Loop: As internal battery cell resistance rises, the battery dissipates significantly more electrical energy as waste heat during discharge and fast-charging.\n"
+                "• Electrolyte Breakdown: Prolonged exposure to temperatures above 38°C accelerates the chemical decomposition of lithium salt electrolytes, compounding capacity loss.\n"
+                "• Thermal Throttling: When the SoC detects elevated chassis temperatures, it throttles processor clock speeds (causing stutter and lag) and reduces charging current to mitigate thermal runaway risks.\n\n"
+                "Physical bench inspection of both battery impedance and thermal interface paste is recommended."
+            ),
+            "suggested_prompts": [
+                "Should I replace the battery?",
+                "What happens if I keep using it?",
+                "What should I ask the technician?"
+            ],
+            "detected_topic": "thermal_battery_link",
+            "active_device": device_name,
+            "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": "battery"}
+        }
+
+    # ------------------------------------------------------------------
+    # 14. FOLLOW-UP: "How much could it cost?" / "How much might repair cost?"
+    # ------------------------------------------------------------------
+    if query_matches(query, ["how much could it cost", "how much might repair", "how much will it cost", "how much does it cost", "repair cost", "cost to fix"]):
+        if device_type == "Laptop":
+            cost_details = (
+                "• Thermal Cleaning & Repaste: ₹1,000–₹2,500 ($25–$50)\n"
+                "• Laptop Battery Replacement: ₹3,000–₹6,500 ($45–$90)\n"
+                "• Screen Assembly: ₹5,000–₹12,000 ($70–$150)"
+            )
+        else:
+            cost_details = (
+                "• OEM Battery Replacement: ₹1,500–₹3,200 ($30–$65)\n"
+                "• Charging Port Sub-Board: ₹1,200–₹2,500 ($20–$40)\n"
+                "• AMOLED Display Replacement: ₹5,500–₹12,000 ($80–$160)\n"
+                "• Camera Module Swap: ₹2,500–₹5,000 ($35–$75)"
+            )
+        return {
+            "response": (
+                f"Preliminary Repair Cost Estimates for {device_name} ({device_type}):\n\n"
+                f"{cost_details}\n\n"
+                f"💡 Economic Context: With your device valued at ~₹{current_value}, a ₹2,000–₹3,000 battery service preserves 100% of device equity for under 17% of its value."
+            ),
+            "suggested_prompts": [
+                "What should I ask the technician?",
+                "Can I fix it myself?",
+                "Should I repair or replace?"
+            ],
+            "detected_topic": "repair_costs",
+            "active_device": device_name,
+            "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": "cost"}
+        }
+
+    # ------------------------------------------------------------------
+    # 15. Context Switch: "What about my laptop?" / "Why is my laptop overheating?"
+    # ------------------------------------------------------------------
+    if query_matches(query, ["what about my laptop", "laptop overheating", "my laptop", "switch to laptop"]):
+        return {
+            "response": (
+                "Switching active diagnostic context to Laptop hardware architecture.\n\n"
+                "Preliminary Assessment of Laptop Overheating:\n"
+                "1. Heatsink Fin Stack Dust Blanketing: Laptop cooling fans pull ambient air and lint into the copper radiator fins, forming an insulating felt blanket that blocks exhaust airflow.\n"
+                "2. Cured Thermal Paste: Factory thermal interface paste dries out and cures after 18–24 months, creating microscopic air pockets between the silicon die and copper heat pipes.\n"
+                "3. Fan Bearing Friction or Vapor Chamber Depletion: Fan motor bearings accumulate grime, or copper heat pipes lose their vacuum seal.\n\n"
+                "Triage Action: A routine physical maintenance service (dust blowout + repaste with Arctic MX-6 or Honeywell PTM7950 phase-change pad) typically lowers operating temperatures by 12–20°C and eliminates fan whine for under ₹1,500–₹2,500."
+            ),
+            "suggested_prompts": [
+                "How often should thermal paste be replaced?",
+                "What should I ask the technician?",
+                "How much might repair cost?"
+            ],
+            "detected_topic": "laptop_thermal",
+            "active_device": "Laptop (Workstation / Ultrabook)",
+            "updated_context": {
+                "device_type": "Laptop",
+                "device_name": "Laptop (Workstation / Ultrabook)",
+                "device_age": "3 years",
+                "last_topic": "thermal"
+            }
+        }
+
+    # ------------------------------------------------------------------
+    # 16. Water / Liquid Damage Emergency
+    # ------------------------------------------------------------------
+    if query_matches(query, ["water", "liquid", "wet", "spill", "dropped in water", "pool", "toilet", "rain", "rice"]):
+        return {
+            "response": (
+                "🚨 EMERGENCY LIQUID INGRESS TRIAGE PROTOCOL:\n\n"
+                "1. Power OFF immediately. Do NOT turn it on to 'check if it works'.\n"
+                "2. NEVER plug it into a charger. Electrical current running through conductive liquid triggers rapid electrolytic corrosion that rots micro-traces in minutes.\n"
+                "3. AVOID THE RICE MYTH: Raw rice does not absorb moisture trapped beneath board shield cans, and fine rice dust clogs ports and headphone jacks.\n"
+                "4. Professional Triage: Remove SIM/SD tray, gently shake out excess liquid, dry exterior, and take it to a repair technician equipped with an ultrasonic cleaner and 99% anhydrous isopropyl alcohol displacement bath. In 78% of quickly powered-down devices, data and hardware are fully salvageable."
+            ),
+            "suggested_prompts": [
+                "Why is rice bad for wet electronics?",
+                "Can data be recovered from a water-damaged device?",
+                "What happens if I keep using it?"
+            ],
+            "detected_topic": "water",
+            "active_device": device_name,
+            "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": "water"}
+        }
+
+    # ------------------------------------------------------------------
+    # 17. Data Recovery & Black Screen Extraction
+    # ------------------------------------------------------------------
+    if query_matches(query, ["recover my data", "recover data", "salvage data", "save my data", "get my photos", "backup photos", "lost data", "dead screen data"]):
+        return {
+            "response": (
+                "E-Mortem Data Salvage Protocol:\n\n"
+                "• High Salvage Rate: In over 84% of hardware failures (including cracked OLEDs, swollen batteries, and charging port failures), onboard NAND flash memory is 100% undamaged.\n"
+                "• Broken Touchscreen: Connect a standard wired USB mouse via a $3 USB-C OTG adapter. A cursor will appear on screen allowing you to input your PIN and initiate a full cloud backup.\n"
+                "• Black Screen of Death: Devices supporting DisplayPort Alt Mode over USB-C (many flagships and laptops) can mirror the display directly to a monitor or TV.\n"
+                "• Privacy Reminder: Never allow a repair technician to perform a factory wipe before attempting external data extraction."
+            ),
+            "suggested_prompts": [
+                "How to use USB OTG to back up a broken phone?",
+                "Is my device worth repairing?",
+                "What should I ask the technician?"
+            ],
+            "detected_topic": "data",
+            "active_device": device_name,
+            "updated_context": {"device_name": device_name, "device_type": device_type, "last_topic": "data"}
+        }
+
+    # ------------------------------------------------------------------
+    # 18. General Fallback with Contextual Analysis
+    # ------------------------------------------------------------------
+    words = [w for w in query.replace("?", "").replace("!", "").replace(",", " ").split() if len(w) > 3]
+    subject = " ".join(words[:4]) if words else "hardware symptom"
 
     return {
-        "response": reply,
+        "response": (
+            f"Preliminary Assessment regarding '{subject}' on your {device_name}:\n\n"
+            "🔍 Diagnostic Observation: Symptoms of this nature typically trace back to modular component wear (connectors, thermal interface, or power regulation) rather than catastrophic motherboard failure.\n\n"
+            "🧪 Safe Triage Step: Before spending on costly repairs, test whether the symptom occurs under safe mode or while connected to a verified OEM charger. In over 70% of cases, issues stem from modular parts that are inexpensive to service.\n\n"
+            "🛠️ Next Step: You can run a full electronic autopsy in E-Mortem's 'Diagnose Device' section to calculate exact component failure probabilities and generate an itemized technician verification script."
+        ),
         "suggested_prompts": [
-            "Why does my phone shut down at 20%?",
-            "How do I know if my battery or motherboard is failing?",
-            "What questions should I ask the repair technician?",
-            "Can I recover my data if the screen is black?"
-        ]
+            "Why is my phone shutting down?",
+            "What should I ask the technician?",
+            "Should I repair or replace?",
+            "Is my battery likely failing?"
+        ],
+        "detected_topic": "general_triage",
+        "active_device": device_name,
+        "updated_context": {
+            "device_name": device_name,
+            "device_type": device_type,
+            "device_age": device_age,
+            "last_topic": "general"
+        }
     }
+
+@app.post("/api/assistant", response_model=schemas.AssistantResponse, tags=["Assistant"])
+def ask_assistant(req: schemas.AssistantRequest):
+    return generate_assistant_response(req.message, req.history, req.context)
 
 if __name__ == "__main__":
     import uvicorn

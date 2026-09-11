@@ -148,9 +148,40 @@ class InsightsResponse(BaseModel):
     recovery_stats: Dict[str, int]
     key_findings: List[str]
 
+class ConversationMessage(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    sender: str
+    text: str
+
+class DeviceContext(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    device_name: Optional[str] = None
+    device_type: Optional[str] = None
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    device_age: Optional[str] = None
+    purchase_date: Optional[str] = None
+    current_value: Optional[float] = None
+    symptoms: Optional[List[str]] = Field(default_factory=list)
+    previous_repairs: Optional[str] = None
+    health_score: Optional[int] = None
+    repairability_score: Optional[int] = None
+    recommendation: Optional[str] = None
+    component_risks: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    probable_causes: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    component_health: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    last_topic: Optional[str] = None
+
 class AssistantRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
     message: str
+    history: Optional[List[ConversationMessage]] = Field(default_factory=list)
+    context: Optional[DeviceContext] = None
 
 class AssistantResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
     response: str
     suggested_prompts: List[str] = Field(default_factory=list)
+    detected_topic: Optional[str] = None
+    active_device: Optional[str] = None
+    updated_context: Optional[Dict[str, Any]] = None
