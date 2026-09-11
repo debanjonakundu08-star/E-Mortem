@@ -115,15 +115,15 @@ export default function Insights() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase">
+          <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-cyan-50 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/20 uppercase">
             Forensic Intelligence
           </span>
           <span className="text-xs font-mono text-slate-500">• Demo / Sample Telemetry</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           Electronic Failure Intelligence
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
           “Learn which problems are most frequently turning usable electronics into premature waste.”
         </p>
       </div>
@@ -132,15 +132,15 @@ export default function Insights() {
       <div className="graveyard-card p-6 sm:p-7">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <span>Most Common Failure Causes</span>
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Distribution of primary failure symptoms across surveyed devices
             </p>
           </div>
-          <span className="text-xs font-mono px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-cyan-400 self-start sm:self-auto">
+          <span className="text-xs font-mono px-2.5 py-1 rounded bg-cyan-50 dark:bg-slate-900 border border-cyan-200 dark:border-slate-800 text-cyan-800 dark:text-cyan-400 self-start sm:self-auto font-semibold">
             Battery = 38% Share
           </span>
         </div>
@@ -148,13 +148,13 @@ export default function Insights() {
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={problemData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} />
-              <YAxis unit="%" domain={[0, 45]} tick={{ fill: "#94A3B8", fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#94A3B8" opacity={0.25} vertical={false} />
+              <XAxis dataKey="name" tick={{ fill: "#64748B", fontSize: 11 }} />
+              <YAxis unit="%" domain={[0, 45]} tick={{ fill: "#64748B", fontSize: 11 }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#0F141C",
-                  borderColor: "#1F2937",
+                  borderColor: "#334155",
                   borderRadius: "8px",
                   fontSize: "12px",
                   color: "#F3F4F6"
@@ -170,10 +170,10 @@ export default function Insights() {
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-4 p-3.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs text-slate-300 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-cyan-400 shrink-0" />
+        <div className="mt-4 p-3.5 rounded-lg bg-cyan-50/80 dark:bg-slate-900/60 border border-cyan-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
           <span>
-            <strong>Postmortem Finding: </strong>
+            <strong className="text-slate-900 dark:text-white">Postmortem Finding: </strong>
             Over 59% of discarded gadgets suffer from battery or thermal degradation &mdash; both of which are inexpensive component-level repairs that avoid total device replacement.
           </span>
         </div>
@@ -184,36 +184,36 @@ export default function Insights() {
         {/* Repair vs Replace Breakdown */}
         <div className="graveyard-card p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Scale className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Scale className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Repair vs Replace Assessment</span>
             </h3>
-            <span className="text-[10px] font-mono text-slate-400">Demo Data</span>
+            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">Demo Data</span>
           </div>
 
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300">Potentially Repairable</span>
-                <span className="text-emerald-400 font-mono font-bold">67%</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">Potentially Repairable</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">67%</span>
               </div>
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-400 h-full w-[67%]" />
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="bg-emerald-500 dark:bg-emerald-400 h-full w-[67%]" />
               </div>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">
                 Repair cost under 35% of residual fair market value
               </span>
             </div>
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300">Beyond Economic Repair</span>
-                <span className="text-rose-400 font-mono font-bold">33%</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">Beyond Economic Repair</span>
+                <span className="text-rose-600 dark:text-rose-400 font-mono font-bold">33%</span>
               </div>
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-rose-400 h-full w-[33%]" />
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="bg-rose-500 dark:bg-rose-400 h-full w-[33%]" />
               </div>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">
                 Recommended for component harvesting and certified recycling
               </span>
             </div>
@@ -223,41 +223,41 @@ export default function Insights() {
         {/* Recovery Opportunities Breakdown */}
         <div className="graveyard-card p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Recycle className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Recycle className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <span>Recovery Opportunities</span>
             </h3>
-            <span className="text-[10px] font-mono text-slate-400">Demo Data</span>
+            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">Demo Data</span>
           </div>
 
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300">Reusable Components (Display, RAM, Modules)</span>
-                <span className="text-cyan-400 font-mono font-bold">78%</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">Reusable Components (Display, RAM, Modules)</span>
+                <span className="text-cyan-600 dark:text-cyan-400 font-mono font-bold">78%</span>
               </div>
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-cyan-400 h-full w-[78%]" />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300">Recoverable User Data</span>
-                <span className="text-emerald-400 font-mono font-bold">84%</span>
-              </div>
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-400 h-full w-[84%]" />
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="bg-cyan-500 dark:bg-cyan-400 h-full w-[78%]" />
               </div>
             </div>
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300">Recyclable Hazardous Materials (Batteries)</span>
-                <span className="text-amber-400 font-mono font-bold">92%</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">Recoverable User Data</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">84%</span>
               </div>
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-amber-400 h-full w-[92%]" />
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="bg-emerald-500 dark:bg-emerald-400 h-full w-[84%]" />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-slate-700 dark:text-slate-300 font-medium">Recyclable Hazardous Materials (Batteries)</span>
+                <span className="text-amber-600 dark:text-amber-400 font-mono font-bold">92%</span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="bg-amber-500 dark:bg-amber-400 h-full w-[92%]" />
               </div>
             </div>
           </div>
@@ -265,43 +265,43 @@ export default function Insights() {
       </div>
 
       {/* 3. WHAT E-MORTEM IS LEARNING */}
-      <div className="graveyard-card p-6 sm:p-7 border-cyan-500/30 bg-gradient-to-br from-[#0B1017] to-[#070A0E]">
+      <div className="graveyard-card p-6 sm:p-7 border-cyan-200 dark:border-cyan-500/30 bg-gradient-to-br from-cyan-50/50 via-white to-slate-50 dark:from-[#0B1017] dark:to-[#070A0E] shadow-sm dark:shadow-none">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-wider">
             <Lightbulb className="w-4 h-4" />
             <span>What E-Mortem is Learning</span>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
             Sample Heuristic Observations
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-start gap-3">
-            <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-300 leading-relaxed">
-              “Battery-related symptoms appear in <strong className="text-white">42% of demo diagnoses</strong>, frequently manifesting as sudden voltage drop under camera load.”
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 flex items-start gap-3 shadow-sm dark:shadow-none">
+            <CheckCircle2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              “Battery-related symptoms appear in <strong className="text-slate-900 dark:text-white">42% of demo diagnoses</strong>, frequently manifesting as sudden voltage drop under camera load.”
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-start gap-3">
-            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-300 leading-relaxed">
-              “Charging issues <strong className="text-white">frequently overlap with battery complaints</strong>, often caused by cable pin wear or lint obstruction rather than IC failure.”
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 flex items-start gap-3 shadow-sm dark:shadow-none">
+            <CheckCircle2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              “Charging issues <strong className="text-slate-900 dark:text-white">frequently overlap with battery complaints</strong>, often caused by cable pin wear or lint obstruction rather than IC failure.”
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-start gap-3">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-300 leading-relaxed">
-              “Many devices marked for replacement <strong className="text-white">still possess recoverable components</strong> like functional AMOLED displays and intact storage flash.”
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 flex items-start gap-3 shadow-sm dark:shadow-none">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              “Many devices marked for replacement <strong className="text-slate-900 dark:text-white">still possess recoverable components</strong> like functional AMOLED displays and intact storage flash.”
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-start gap-3">
-            <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-300 leading-relaxed">
-              “<strong className="text-white">74% of random shutdowns</strong> are resolved by OEM battery service rather than costly motherboard replacement quotes.”
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 flex items-start gap-3 shadow-sm dark:shadow-none">
+            <CheckCircle2 className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              “<strong className="text-slate-900 dark:text-white">74% of random shutdowns</strong> are resolved by OEM battery service rather than costly motherboard replacement quotes.”
             </p>
           </div>
         </div>
@@ -310,11 +310,11 @@ export default function Insights() {
       {/* 4. PREVENTION GUIDELINES */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
             <span>What Could Have Prevented the Failure?</span>
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Connecting individual postmortems to long-term electronic lifespan extension.
           </p>
         </div>
@@ -325,13 +325,13 @@ export default function Insights() {
             return (
               <div
                 key={idx}
-                className="graveyard-card p-5 space-y-3 hover:border-slate-700 transition-colors"
+                className="graveyard-card p-5 space-y-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                     {item.cause}
                   </span>
-                  <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-cyan-400">
+                  <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-cyan-600 dark:text-cyan-400">
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
@@ -340,12 +340,12 @@ export default function Insights() {
                   <span className="text-[11px] text-slate-500 uppercase block font-semibold mb-0.5">
                     Recommended Prevention:
                   </span>
-                  <div className="text-sm font-bold text-cyan-400">
+                  <div className="text-sm font-bold text-cyan-600 dark:text-cyan-400">
                     {item.prevention}
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                   {item.detail}
                 </p>
               </div>
@@ -358,22 +358,22 @@ export default function Insights() {
       <div className="graveyard-card p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <span>Reported Failures vs. Second-Opinion Avoidances</span>
             </h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Tracking reported issues against unnecessary replacements prevented by E-Mortem
             </p>
           </div>
 
-          <div className="inline-flex rounded-lg bg-slate-900 p-1 border border-slate-800 text-xs">
+          <div className="inline-flex rounded-lg bg-slate-100 dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800 text-xs">
             <button
               onClick={() => setTimeRange("6m")}
               className={`px-3 py-1 rounded-md font-medium transition-colors ${
                 timeRange === "6m"
-                  ? "bg-cyan-500 text-slate-950 font-bold"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-cyan-600 text-white dark:bg-cyan-500 dark:text-slate-950 font-bold shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
               Last 6 months
@@ -382,8 +382,8 @@ export default function Insights() {
               onClick={() => setTimeRange("12m")}
               className={`px-3 py-1 rounded-md font-medium transition-colors ${
                 timeRange === "12m"
-                  ? "bg-cyan-500 text-slate-950 font-bold"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-cyan-600 text-white dark:bg-cyan-500 dark:text-slate-950 font-bold shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
               Last year
@@ -397,13 +397,13 @@ export default function Insights() {
               data={timeRange === "6m" ? trendData6m : trendData12m}
               margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-              <XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#94A3B8" opacity={0.25} vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: "#64748B", fontSize: 11 }} />
+              <YAxis tick={{ fill: "#64748B", fontSize: 11 }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#0F141C",
-                  borderColor: "#1F2937",
+                  borderColor: "#334155",
                   borderRadius: "8px",
                   fontSize: "12px",
                   color: "#F3F4F6"

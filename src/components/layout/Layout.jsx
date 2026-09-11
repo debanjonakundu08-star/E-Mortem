@@ -10,7 +10,7 @@ export default function Layout({ children }) {
   const { toast } = useProducts();
 
   return (
-    <div className="min-h-screen bg-[#080B0E] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-charcoal-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       <Sidebar
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}

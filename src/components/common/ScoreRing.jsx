@@ -57,7 +57,7 @@ export default function ScoreRing({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="rgba(255, 255, 255, 0.07)"
+            className="stroke-slate-200 dark:stroke-white/10"
             strokeWidth={strokeWidth}
             fill="transparent"
           />
@@ -82,20 +82,20 @@ export default function ScoreRing({
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <div className="flex items-baseline">
-            <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+            <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
               {score}
             </span>
-            <span className="text-xs text-slate-400 font-medium ml-0.5">/{max}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium ml-0.5">/{max}</span>
           </div>
           {label && (
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5 font-mono">
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5 font-mono">
               {label}
             </span>
           )}
         </div>
       </div>
       {sublabel && (
-        <span className="text-xs text-slate-400 mt-2 text-center max-w-[140px] leading-relaxed">
+        <span className="text-xs text-slate-600 dark:text-slate-400 mt-2 text-center max-w-[140px] leading-relaxed">
           {sublabel}
         </span>
       )}

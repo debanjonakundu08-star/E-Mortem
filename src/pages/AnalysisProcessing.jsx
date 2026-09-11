@@ -99,19 +99,19 @@ export default function AnalysisProcessing() {
   if (error) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6">
-        <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900 border border-rose-500/40 text-center shadow-2xl space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 mx-auto flex items-center justify-center">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-500/40 text-center shadow-xl dark:shadow-2xl space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center">
             <AlertTriangle className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-xl font-extrabold text-white">
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
               E-Mortem couldn't complete the analysis
             </h2>
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-slate-600 dark:text-slate-300">
               Something went wrong while processing your device information.
             </p>
-            <p className="text-[11px] font-mono text-rose-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+            <p className="text-[11px] font-mono text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-slate-950 p-2.5 rounded-lg border border-rose-200 dark:border-slate-800">
               {error}
             </p>
           </div>
@@ -129,7 +129,7 @@ export default function AnalysisProcessing() {
             <button
               type="button"
               onClick={() => navigate("/diagnose")}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Return to Device Details</span>
@@ -145,7 +145,7 @@ export default function AnalysisProcessing() {
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center p-4">
-      <div className="max-w-lg w-full p-8 sm:p-10 rounded-3xl bg-gradient-to-b from-slate-900 via-[#0B1017] to-[#070A0E] border border-cyan-500/40 shadow-2xl relative overflow-hidden text-center space-y-7">
+      <div className="max-w-lg w-full p-8 sm:p-10 rounded-3xl bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:via-[#0B1017] dark:to-[#070A0E] border border-cyan-200 dark:border-cyan-500/40 shadow-xl dark:shadow-2xl relative overflow-hidden text-center space-y-7">
         {/* Laser scanline animation */}
         <div className="ai-scan-line" />
 
@@ -154,20 +154,20 @@ export default function AnalysisProcessing() {
         <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Central Pulsing Icon */}
-        <div className="relative mx-auto w-20 h-20 rounded-2xl bg-cyan-950/30 border border-cyan-500/40 text-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-950/50">
-          <Activity className="w-10 h-10 animate-pulse text-cyan-400" />
+        <div className="relative mx-auto w-20 h-20 rounded-2xl bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-300 dark:border-cyan-500/40 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shadow-md dark:shadow-lg dark:shadow-cyan-950/50">
+          <Activity className="w-10 h-10 animate-pulse text-cyan-600 dark:text-cyan-400" />
           <div className="absolute inset-0 rounded-2xl border border-cyan-400/30 animate-ping opacity-25" />
         </div>
 
         {/* Title & Subtitle */}
         <div className="space-y-1.5 relative z-10">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-cyan-400 font-bold block">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-cyan-600 dark:text-cyan-400 font-bold block">
             E-Mortem Telemetry Engine
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Performing E-Mortem
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
             Analyzing the evidence you provided...
           </p>
         </div>
@@ -182,23 +182,23 @@ export default function AnalysisProcessing() {
               <div
                 key={idx}
                 className={`flex items-center gap-3 text-xs font-mono transition-all duration-300 ${
-                  isCompleted ? "text-slate-100" : "text-slate-600 opacity-40"
+                  isCompleted ? "text-slate-800 dark:text-slate-100" : "text-slate-400 dark:text-slate-600 opacity-40"
                 }`}
               >
                 <div
                   className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] transition-all ${
                     isCompleted
-                      ? "bg-emerald-500 text-slate-950 font-bold"
-                      : "bg-slate-800 text-slate-500 border border-slate-700"
+                      ? "bg-emerald-500 text-white dark:text-slate-950 font-bold"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-300 dark:border-slate-700"
                   }`}
                 >
                   {isCompleted ? "✓" : ""}
                 </div>
-                <span className={isCurrent ? "font-bold text-cyan-300" : ""}>
+                <span className={isCurrent ? "font-bold text-cyan-700 dark:text-cyan-300" : ""}>
                   {stepText}
                 </span>
                 {isCurrent && !isDone && (
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping ml-auto" />
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-ping ml-auto" />
                 )}
               </div>
             );
@@ -207,20 +207,20 @@ export default function AnalysisProcessing() {
 
         {/* Progress Bar & Percentage */}
         <div className="space-y-2 relative z-10">
-          <div className="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden p-0.5 border border-slate-700">
+          <div className="w-full bg-slate-100 dark:bg-slate-800/80 h-2 rounded-full overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
             <div
-              className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full transition-all duration-500"
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
             <span>Synthesis In Progress</span>
-            <span className="text-emerald-400 font-bold">{progressPct}%</span>
+            <span className="text-emerald-700 dark:text-emerald-400 font-bold">{progressPct}%</span>
           </div>
         </div>
 
         {/* Signature Statement */}
-        <div className="pt-2 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
+        <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 text-[11px] font-mono text-slate-500 dark:text-slate-400">
           «The device may have died. The investigation doesn't.»
         </div>
       </div>

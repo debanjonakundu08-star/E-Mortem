@@ -66,44 +66,44 @@ export default function EmergencyDiagnosis() {
   return (
     <div className="max-w-4xl mx-auto space-y-7 pb-20">
       {/* Header */}
-      <div className="border-b border-slate-800/80 pb-6 space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold">
+      <div className="border-b border-slate-200 dark:border-slate-800/80 pb-6 space-y-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs font-mono font-bold">
           <AlertOctagon className="w-3.5 h-3.5" />
           <span>Emergency Diagnostic Protocol</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           Device Suddenly Died?
         </h1>
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           Access E-Mortem from another phone, laptop, or browser to investigate sudden device death.
         </p>
       </div>
 
       {/* Signature Statement Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-950/30 via-slate-900 to-[#0A0D12] border border-rose-500/30 flex items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-rose-50 via-white to-rose-100/30 dark:from-rose-950/30 dark:via-slate-900 dark:to-[#0A0D12] border border-rose-200 dark:border-rose-500/30 flex items-center justify-between gap-4 shadow-sm dark:shadow-none">
         <div className="space-y-1">
-          <span className="text-xs font-mono text-rose-400 uppercase tracking-wider font-bold">
+          <span className="text-xs font-mono text-rose-700 dark:text-rose-400 uppercase tracking-wider font-bold">
             Electronic Forensics Mandate
           </span>
-          <p className="text-lg sm:text-xl font-extrabold text-white">
+          <p className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
             «The device may have died. The investigation doesn't.»
           </p>
         </div>
-        <ShieldAlert className="w-10 h-10 text-rose-400 shrink-0 opacity-80" />
+        <ShieldAlert className="w-10 h-10 text-rose-600 dark:text-rose-400 shrink-0 opacity-80" />
       </div>
 
       {/* Emergency Intake Form */}
       <form onSubmit={handleSubmit} className="graveyard-card p-6 sm:p-8 space-y-6">
         {/* Device Selection */}
         <div className="space-y-2">
-          <label className="block text-xs font-mono font-bold text-slate-300 uppercase">
+          <label className="block text-xs font-mono font-bold text-slate-700 dark:text-slate-300 uppercase">
             Select Previously Saved Device or Enter New
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <select
               value={selectedDeviceId}
               onChange={(e) => handleDeviceChange(e.target.value)}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-rose-500"
+              className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
             >
               <option value="">-- Enter Custom Unresponsive Device --</option>
               {devices.map((d) => (
@@ -118,7 +118,7 @@ export default function EmergencyDiagnosis() {
               value={deviceModel}
               onChange={(e) => setDeviceModel(e.target.value)}
               placeholder="e.g. Samsung Galaxy S23"
-              className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-rose-500"
+              className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
               required
             />
           </div>
@@ -126,7 +126,7 @@ export default function EmergencyDiagnosis() {
 
         {/* Immediate Failure Circumstances */}
         <div className="space-y-3">
-          <label className="block text-xs font-mono font-bold text-slate-300 uppercase">
+          <label className="block text-xs font-mono font-bold text-slate-700 dark:text-slate-300 uppercase">
             What happened immediately before failure?
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -141,12 +141,12 @@ export default function EmergencyDiagnosis() {
                 onClick={() => setImmediateEvent(opt.id)}
                 className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all ${
                   immediateEvent === opt.id
-                    ? "bg-rose-500/15 border-rose-400 text-rose-300"
-                    : "bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                    ? "bg-rose-50 dark:bg-rose-500/15 border-rose-400 text-rose-800 dark:text-rose-300 font-semibold"
+                    : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
                 }`}
               >
-                <opt.icon className="w-5 h-5 shrink-0 mt-0.5" />
-                <span className="text-xs font-bold text-white block">{opt.label}</span>
+                <opt.icon className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
+                <span className="text-xs font-bold text-slate-900 dark:text-white block">{opt.label}</span>
               </button>
             ))}
           </div>
@@ -155,7 +155,9 @@ export default function EmergencyDiagnosis() {
         {/* Incident Checkboxes */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
           <label className={`p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer text-xs ${
-            wasCharging ? "bg-slate-900 border-rose-500/40 text-white" : "bg-slate-950 border-slate-800 text-slate-400"
+            wasCharging
+              ? "bg-rose-50 dark:bg-slate-900 border-rose-300 dark:border-rose-500/40 text-slate-900 dark:text-white font-medium"
+              : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
           }`}>
             <input
               type="checkbox"
@@ -167,7 +169,9 @@ export default function EmergencyDiagnosis() {
           </label>
 
           <label className={`p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer text-xs ${
-            wasDropped ? "bg-slate-900 border-rose-500/40 text-white" : "bg-slate-950 border-slate-800 text-slate-400"
+            wasDropped
+              ? "bg-rose-50 dark:bg-slate-900 border-rose-300 dark:border-rose-500/40 text-slate-900 dark:text-white font-medium"
+              : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
           }`}>
             <input
               type="checkbox"
@@ -179,7 +183,9 @@ export default function EmergencyDiagnosis() {
           </label>
 
           <label className={`p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer text-xs ${
-            hadLiquid ? "bg-slate-900 border-rose-500/40 text-white" : "bg-slate-950 border-slate-800 text-slate-400"
+            hadLiquid
+              ? "bg-rose-50 dark:bg-slate-900 border-rose-300 dark:border-rose-500/40 text-slate-900 dark:text-white font-medium"
+              : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
           }`}>
             <input
               type="checkbox"
@@ -193,33 +199,33 @@ export default function EmergencyDiagnosis() {
 
         {/* Warning Signs */}
         <div className="space-y-2">
-          <label className="block text-xs font-mono font-bold text-slate-300 uppercase">
+          <label className="block text-xs font-mono font-bold text-slate-700 dark:text-slate-300 uppercase">
             Were there previous warning signs in recent days?
           </label>
           <input
             type="text"
             value={previousWarnings}
             onChange={(e) => setPreviousWarnings(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-rose-500"
+            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
           />
         </div>
 
         {/* Description */}
         <div className="space-y-2">
-          <label className="block text-xs font-mono font-bold text-slate-300 uppercase">
+          <label className="block text-xs font-mono font-bold text-slate-700 dark:text-slate-300 uppercase">
             Final Moments Description (In Your Words)
           </label>
           <textarea
             rows={3}
             value={userNotes}
             onChange={(e) => setUserNotes(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-rose-500 leading-relaxed"
+            className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-4 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 leading-relaxed"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full py-4 rounded-xl text-sm font-bold bg-rose-500 hover:bg-rose-400 text-slate-950 transition-all flex items-center justify-center gap-2 shadow-xl shadow-rose-500/20 active:scale-[0.99]"
+          className="w-full py-4 rounded-xl text-sm font-bold bg-rose-500 hover:bg-rose-400 text-white dark:text-slate-950 transition-all flex items-center justify-center gap-2 shadow-xl shadow-rose-500/20 active:scale-[0.99]"
         >
           <Sparkles className="w-4 h-4" />
           <span>Diagnose Failed Device →</span>

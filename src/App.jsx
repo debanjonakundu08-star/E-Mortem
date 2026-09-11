@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProductProvider } from "./context/ProductContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import Layout from "./components/layout/Layout";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import Dashboard from "./pages/Dashboard";
@@ -17,12 +18,13 @@ import Settings from "./pages/Settings";
 
 export default function App() {
   return (
-    <ProductProvider>
-      <BrowserRouter>
-        <Layout>
-          <ErrorBoundary>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
+    <ThemeProvider>
+      <ProductProvider>
+        <BrowserRouter>
+          <Layout>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/diagnose" element={<Diagnose />} />
               <Route path="/diagnose/analyzing" element={<AnalysisProcessing />} />
@@ -45,5 +47,6 @@ export default function App() {
         </Layout>
       </BrowserRouter>
     </ProductProvider>
+  </ThemeProvider>
   );
 }

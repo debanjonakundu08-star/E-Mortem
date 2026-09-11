@@ -25,15 +25,15 @@ export default function ProgressBar({
     <div className="w-full">
       {(label || showValue) && (
         <div className="flex justify-between items-center mb-1.5 text-xs">
-          {label && <span className="font-medium text-slate-300">{label}</span>}
+          {label && <span className="font-medium text-slate-700 dark:text-slate-300">{label}</span>}
           {showValue && (
-            <span className="font-semibold text-slate-200 font-mono text-[11px]">
+            <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono text-[11px]">
               {value}{unit}
             </span>
           )}
         </div>
       )}
-      <div className={`w-full ${height} bg-slate-900/90 rounded-full overflow-hidden p-0.5 border border-slate-800`}>
+      <div className={`w-full ${height} bg-slate-200 dark:bg-slate-900/90 rounded-full overflow-hidden p-0.5 border border-slate-300 dark:border-slate-800`}>
         <div
           className={`h-full rounded-full transition-all duration-700 ease-out ${barColors}`}
           style={{ width: `${percentage}%` }}

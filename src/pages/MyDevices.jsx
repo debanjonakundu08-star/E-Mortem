@@ -33,12 +33,12 @@ export default function MyDevices() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-5">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <span>My Devices</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
             Track electronic integrity, diagnosis history, and postmortem second opinions for your gadgets.
           </p>
         </div>
@@ -54,18 +54,18 @@ export default function MyDevices() {
 
       {/* Search Bar */}
       <div className="graveyard-card p-4 flex items-center gap-3">
-        <Search className="w-4 h-4 text-slate-400 shrink-0" />
+        <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search your devices by name, model, brand or ID..."
-          className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
+          className="w-full bg-transparent text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
         />
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="text-xs text-slate-400 hover:text-white"
+            className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
           >
             Clear
           </button>
@@ -86,7 +86,7 @@ export default function MyDevices() {
                     {d.type === "Smartphone" ? "📱" : d.type === "Laptop" ? "💻" : "🎧"}
                   </span>
                   <div>
-                    <h3 className="text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
                       {d.device}
                     </h3>
                     <span className="text-[11px] text-slate-500 font-mono">
@@ -97,22 +97,22 @@ export default function MyDevices() {
                 <StatusBadge status={d.status} size="sm" />
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1.5 text-xs mb-3.5">
+              <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs mb-3.5">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Device Health:</span>
-                  <span className="font-extrabold text-white font-mono">
+                  <span className="font-extrabold text-slate-900 dark:text-white font-mono">
                     {d.healthScore} / 100
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Last Diagnosis:</span>
-                  <span className="text-slate-300 font-medium">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">
                     {d.dateDiagnosed || "Recent"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Suspected Issue:</span>
-                  <span className="text-amber-400 font-medium truncate max-w-[140px]">
+                  <span className="text-amber-700 dark:text-amber-400 font-medium truncate max-w-[140px]">
                     {d.probableCauses?.[0]?.name || "Wear"}
                   </span>
                 </div>
@@ -127,7 +127,7 @@ export default function MyDevices() {
                     {d.symptoms.slice(0, 3).map((sym, i) => (
                       <span
                         key={i}
-                        className="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700"
+                        className="px-2 py-0.5 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                       >
                         {sym}
                       </span>
@@ -137,10 +137,10 @@ export default function MyDevices() {
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <button
                 onClick={() => navigate(`/diagnose`)}
-                className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
+                className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Re-Diagnose</span>
@@ -148,7 +148,7 @@ export default function MyDevices() {
 
               <Link
                 to={`/report/${d.id}`}
-                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 flex items-center gap-1 group-hover:translate-x-1 transition-transform"
               >
                 <span>View E-Mortem</span>
                 <ArrowRight className="w-3.5 h-3.5" />
