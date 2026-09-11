@@ -322,7 +322,7 @@ export function analyzeDevice(input) {
     ageYears: parsedAge,
     condition: currentCondition,
     symptoms,
-    purchasePrice: parsedPrice,
+    purchasePrice: parsedPurchase,
     isWaterDamaged: symptoms.includes("water_damage") || (priorEvent && priorEvent.toLowerCase().includes("water"))
   });
 
@@ -348,7 +348,7 @@ export function analyzeDevice(input) {
     model,
     purchaseDate,
     age: parsedAge,
-    purchasePrice: parsedPrice,
+    purchasePrice: parsedPurchase,
     currentValue: usedMarketValue,
     status: healthStatusType === "healthy" ? "Healthy" : healthStatusType === "warning" ? "Needs Attention" : "High Risk",
     statusBadge: healthStatusType === "healthy" ? "Healthy" : healthStatusType === "warning" ? "Attention Required" : "High Risk",
