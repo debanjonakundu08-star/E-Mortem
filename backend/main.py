@@ -46,9 +46,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --------------------------------------------------------------------------
-# Health Check Endpoint
-# --------------------------------------------------------------------------
+@app.get("/")
+@app.get("/api")
+def get_root():
+    return {
+        "status": "online",
+        "service": "E-Mortem API",
+        "documentation": "/docs"
+    }
+
 @app.get("/api/health", response_model=schemas.HealthResponse, tags=["Health"])
 def get_health():
     return {
