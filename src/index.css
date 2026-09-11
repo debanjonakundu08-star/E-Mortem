@@ -1,0 +1,75 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#080B0E] text-slate-100 font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-300;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0F14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1F2937;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Futuristic Scanline Animation */
+@keyframes aiScan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0.2;
+  }
+}
+
+.ai-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #10B981, transparent);
+  box-shadow: 0 0 15px #10B981;
+  animation: aiScan 2s linear infinite;
+}
+
+/* Card glass styles */
+.graveyard-card {
+  background: #0E1319;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.graveyard-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.graveyard-card-interactive {
+  background: #0E1319;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.graveyard-card-interactive:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+}
