@@ -17,12 +17,12 @@ import schemas
 from analysis_engine import analyze_device_telemetry
 from seed_data import seed_database
 
-# Initialize database schema and seeds
-Base.metadata.create_all(bind=engine)
+# Initialize database schema and seeds safely
 try:
+    Base.metadata.create_all(bind=engine)
     seed_database()
 except Exception as e:
-    print(f"Seed note: {e}")
+    print(f"Database initialization note: {e}")
 
 app = FastAPI(
     title="E-Mortem API",

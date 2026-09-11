@@ -1,9 +1,18 @@
 /**
  * Centralized API Service for E-Mortem
- * Communicates with the FastAPI backend at http://localhost:8000
+ * Communicates with FastAPI backend:
+ * - On Vercel (production): Uses relative URL "" so requests target Vercel Serverless Functions (/api/*)
+ * - In local dev (or if custom external VITE_API_URL specified): Uses configured endpoint
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const envUrl = (import.meta.env.VITE_API_URL || "").trim();
+const isLocalhost = envUrl.includes("localhost") || envUrl.includes("127.0.0.1");
+
+// If in production on Vercel and no external host is provided (or if localhost is baked in),
+// default to relative "" so all /api calls hit the same Vercel host serverless functions.
+const API_BASE = (import.meta.env.DEV || (envUrl && !isLocalhost))
+  ? (envUrl || "http://localhost:8000")
+  : "";
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
