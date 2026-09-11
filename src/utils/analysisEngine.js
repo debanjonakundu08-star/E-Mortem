@@ -25,9 +25,8 @@ export function analyzeDevice(input) {
   } = input;
 
   const isDemoS23 = (
-    (brand.toLowerCase().includes("samsung") && model.toLowerCase().includes("s23")) ||
     id === "EM-2026-1024" ||
-    (symptoms.includes("shutdown") && symptoms.includes("overheating") && symptoms.includes("battery_drain"))
+    (brand.toLowerCase().trim() === "samsung" && model.toLowerCase().trim().includes("s23"))
   );
 
   // Exact Match for Hackathon Demo Case (Samsung Galaxy S23)

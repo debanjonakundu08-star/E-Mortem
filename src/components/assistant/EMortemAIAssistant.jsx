@@ -14,10 +14,56 @@ import {
   Database,
   Smartphone,
   ChevronRight,
-  RotateCcw
+  RotateCcw,
+  Edit3,
+  Plus,
+  Laptop,
+  Tablet,
+  Headphones,
+  Watch,
+  Monitor,
+  Tv,
+  Plug,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { useProducts } from "../../context/ProductContext";
+import { analyzeDevice } from "../../utils/analysisEngine";
 import api from "../../services/api";
+
+export function getDeviceIcon(type) {
+  const t = (type || "").toLowerCase();
+  if (t.includes("laptop") || t.includes("macbook") || t.includes("pc")) return Laptop;
+  if (t.includes("tablet") || t.includes("ipad")) return Tablet;
+  if (t.includes("headphone") || t.includes("audio")) return Headphones;
+  if (t.includes("earbud") || t.includes("buds") || t.includes("airpods")) return Headphones;
+  if (t.includes("watch") || t.includes("wearable")) return Watch;
+  if (t.includes("tv") || t.includes("television")) return Tv;
+  if (t.includes("monitor") || t.includes("display")) return Monitor;
+  if (t.includes("plug") || t.includes("other")) return Plug;
+  return Smartphone;
+}
+
+export function getDeviceShutdownPrompt(type) {
+  const t = (type || "phone").toLowerCase();
+  if (t.includes("earbud") || t.includes("headphone")) {
+    return `Why are my ${t} shutting down?`;
+  }
+  return `Why is my ${t === "smartphone" ? "phone" : t} shutting down?`;
+}
+
+export function getDevicePrompts(type, symptoms = []) {
+  const shutdownLabel = getDeviceShutdownPrompt(type);
+  const prompts = [
+    shutdownLabel,
+    "What should I ask the technician?",
+    "Should I repair or replace?",
+    "What should I backup first?",
+    "Is my battery likely failing?",
+    "What could have caused this problem?"
+  ];
+  return prompts;
+}
 
 const INITIAL_SUGGESTED_QUESTIONS = [
   {
@@ -54,15 +100,18 @@ const INITIAL_SUGGESTED_QUESTIONS = [
 
 function generateClientResponse(queryText, history, context, kpis) {
   const query = (queryText || "").toLowerCase().trim();
-  const deviceName = context?.deviceName || "Samsung Galaxy S23";
-  const deviceType = context?.deviceType || "Smartphone";
-  const deviceAge = context?.deviceAge || "2.5 years";
-  const currentValue = context?.currentValue || 18000;
-  const healthScore = context?.healthScore || 64;
-  const repairabilityScore = context?.repairabilityScore || 78;
+  const brand = context?.brand || "";
+  const model = context?.model || "";
+  const deviceType = context?.deviceType || "Device";
+  const deviceName = context?.deviceName || (brand || model ? `${brand} ${model}`.trim() : (context?.deviceType ? `Your ${context.deviceType}` : "Your device"));
+  const deviceAge = context?.deviceAge || (context?.purchaseDate ? `purchased ${context.purchaseDate}` : "recently reported");
+  const currentValue = context?.currentValue || 15000;
+  const healthScore = context?.healthScore || 68;
+  const repairabilityScore = context?.repairabilityScore || 75;
   const recommendation = context?.recommendation || "REPAIR FIRST";
-  const symptoms = context?.symptoms || ["shutdown", "battery_drain", "overheating"];
+  const symptoms = context?.symptoms || ["battery_drain", "shutdown"];
   const symptomsStr = Array.isArray(symptoms) ? symptoms.join(", ") : String(symptoms);
+  const priorEvent = context?.priorEvent || "No obvious event";
 
   const match = (terms) => terms.some((t) => {
     const regex = new RegExp(`(?:\\b|_)${t}(?:\\b|_)`, "i");
@@ -408,35 +457,173 @@ function generateClientResponse(queryText, history, context, kpis) {
   };
 }
 
+const DEVICE_TYPE_OPTIONS = [
+  "Phone",
+  "Laptop",
+  "Tablet",
+  "Earbuds",
+  "Headphones",
+  "Smartwatch",
+  "TV",
+  "Monitor",
+  "Other"
+];
+
+const COMPACT_SYMPTOMS = [
+  { id: "battery_drain", label: "Battery drains quickly" },
+  { id: "shutdown", label: "Random shutdowns" },
+  { id: "overheating", label: "Device overheating" },
+  { id: "charging", label: "Charging problems" },
+  { id: "sluggish", label: "Slow / sluggish" },
+  { id: "screen", label: "Screen / display issue" },
+  { id: "restart", label: "Unexpected restarts" },
+  { id: "audio", label: "Speaker / mic issue" },
+  { id: "physical", label: "Physical / drop damage" },
+  { id: "other", label: "Other symptoms" }
+];
+
+const TIMELINE_OPTIONS = [
+  "Today / Just started",
+  "A few days ago",
+  "1–2 weeks ago",
+  "Over a month ago",
+  "Gradual deterioration"
+];
+
+const PREVIOUS_REPAIRS_OPTIONS = [
+  "No previous repairs",
+  "Screen was previously replaced",
+  "Battery was previously replaced",
+  "Third-party repair attempted",
+  "Prior liquid / water exposure",
+  "Prior chassis / drop impact"
+];
+
+const PRIOR_EVENTS_OPTIONS = [
+  "No obvious event",
+  "Device was dropped",
+  "Device got wet or exposed to liquid",
+  "Recent software / OS update",
+  "Installed new application",
+  "Used third-party charger / cable",
+  "Device became unusually hot",
+  "Other"
+];
+
 export default function EMortemAIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
-  const { devices, kpis, getDemoDevice } = useProducts();
+  const { devices, kpis } = useProducts();
   const messagesEndRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
 
-  // Active Device Context
-  const activeDevice = devices && devices.length > 0 ? devices[0] : getDemoDevice();
-  const [conversationContext, setConversationContext] = useState({
-    deviceName: activeDevice?.device || "Samsung Galaxy S23",
-    deviceType: activeDevice?.type || "Smartphone",
-    deviceAge: activeDevice?.age ? `${activeDevice.age} years` : "2.5 years",
-    currentValue: activeDevice?.currentValue || 18000,
-    healthScore: activeDevice?.healthScore || 64,
-    repairabilityScore: activeDevice?.repairabilityScore || 78,
-    recommendation: activeDevice?.repairVsReplace?.recommendation || "REPAIR FIRST",
-    symptoms: activeDevice?.symptoms || ["shutdown", "battery_drain", "overheating"],
-    lastTopic: ""
+  // Active Device State (retrieved from localStorage or set via setup/select)
+  const [activeDevice, setActiveDevice] = useState(() => {
+    try {
+      const saved = localStorage.getItem("e_mortem_active_chatbot_device");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
   });
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "ai",
-      text: "Hi! I'm E-Mortem AI, your digital electronic forensic assistant. Ask me why a device might be shutting down, what to ask a repair technician, or whether repair is worth investigating."
-    }
-  ]);
+  // View Modes: "chat" | "setup" | "select"
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem("e_mortem_active_chatbot_device");
+      if (saved) return "chat";
+    } catch (e) {}
+    return devices && devices.length > 0 ? "select" : "setup";
+  });
 
-  const [activePrompts, setActivePrompts] = useState(INITIAL_SUGGESTED_QUESTIONS.map(q => q.label));
+  // Form State for compact device setup
+  const [formData, setFormData] = useState({
+    type: "Phone",
+    brand: "",
+    model: "",
+    purchaseDate: "",
+    purchasePrice: "",
+    symptoms: ["battery_drain"],
+    problemStarted: "A few days ago",
+    previousRepairs: "No previous repairs",
+    whatHappenedBefore: "No obvious event"
+  });
+  const [formError, setFormError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Conversation Context
+  const [conversationContext, setConversationContext] = useState(() => {
+    try {
+      const saved = localStorage.getItem("e_mortem_active_chatbot_device");
+      if (saved) {
+        const d = JSON.parse(saved);
+        const name = `${d.brand || ''} ${d.model || d.device || ''}`.trim() || "Your device";
+        const age = d.age ? `${d.age} years` : d.purchaseDate ? `purchased ${d.purchaseDate}` : "recently reported";
+        return {
+          deviceName: name,
+          deviceType: d.type || "Phone",
+          brand: d.brand || "",
+          model: d.model || "",
+          deviceAge: age,
+          purchaseDate: d.purchaseDate || "",
+          currentValue: d.currentValue || 18000,
+          healthScore: d.healthScore || 64,
+          repairabilityScore: d.repairabilityScore || 78,
+          recommendation: d.repairVsReplace?.recommendation || "REPAIR FIRST",
+          symptoms: d.symptoms || ["battery_drain", "shutdown"],
+          priorEvent: d.priorEvent || "No obvious event",
+          problemStarted: d.userStory || "A few days ago",
+          previousRepairs: d.previousRepairs || "No previous repairs",
+          lastTopic: ""
+        };
+      }
+    } catch (e) {}
+
+    return {
+      deviceName: "",
+      deviceType: "Phone",
+      brand: "",
+      model: "",
+      deviceAge: "",
+      purchaseDate: "",
+      currentValue: 15000,
+      healthScore: 68,
+      repairabilityScore: 75,
+      recommendation: "REPAIR FIRST",
+      symptoms: ["battery_drain"],
+      priorEvent: "No obvious event",
+      problemStarted: "A few days ago",
+      previousRepairs: "No previous repairs",
+      lastTopic: ""
+    };
+  });
+
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem("e_mortem_active_chatbot_device");
+      if (saved) {
+        const d = JSON.parse(saved);
+        const name = `${d.brand || ''} ${d.model || d.device || ''}`.trim();
+        return [
+          {
+            id: 1,
+            sender: "ai",
+            text: `Forensic telemetry profile active for ${name}.\nHow can I help you investigate this device today?`
+          }
+        ];
+      }
+    } catch (e) {}
+
+    return [
+      {
+        id: 1,
+        sender: "ai",
+        text: "Hi! I'm E-Mortem AI, your digital electronic forensic assistant. Ask me why a device might be shutting down, what to ask a repair technician, or whether repair is worth investigating."
+      }
+    ];
+  });
+
+  const [activePrompts, setActivePrompts] = useState(() => {
+    return getDevicePrompts(conversationContext.deviceType, conversationContext.symptoms);
+  });
   const [inputValue, setInputValue] = useState("");
 
   const scrollToBottom = () => {
@@ -444,10 +631,194 @@ export default function EMortemAIAssistant() {
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && viewMode === "chat") {
       scrollToBottom();
     }
-  }, [messages, isTyping, isOpen]);
+  }, [messages, isTyping, isOpen, viewMode]);
+
+  const toggleSymptom = (symId) => {
+    setFormData((prev) => {
+      const exists = prev.symptoms.includes(symId);
+      const next = exists
+        ? prev.symptoms.filter((s) => s !== symId)
+        : [...prev.symptoms, symId];
+      return {
+        ...prev,
+        symptoms: next.length > 0 ? next : [symId]
+      };
+    });
+  };
+
+  const handleOpenEditProfile = () => {
+    const active = activeDevice;
+    setFormData({
+      type: conversationContext.deviceType === "Smartphone" ? "Phone" : (conversationContext.deviceType || "Phone"),
+      brand: conversationContext.brand || active?.brand || "",
+      model: conversationContext.model || active?.model || "",
+      purchaseDate: conversationContext.purchaseDate || active?.purchaseDate || "",
+      purchasePrice: active?.purchasePrice ? String(active.purchasePrice) : "",
+      symptoms: Array.isArray(conversationContext.symptoms) && conversationContext.symptoms.length > 0
+        ? conversationContext.symptoms
+        : ["battery_drain"],
+      problemStarted: conversationContext.problemStarted || "A few days ago",
+      previousRepairs: conversationContext.previousRepairs || "No previous repairs",
+      whatHappenedBefore: conversationContext.priorEvent || "No obvious event"
+    });
+    setFormError("");
+    setIsEditing(true);
+    setViewMode("setup");
+  };
+
+  const handleOpenChangeDevice = () => {
+    setViewMode("select");
+  };
+
+  const handleOpenNewProfile = () => {
+    setFormData({
+      type: "Phone",
+      brand: "",
+      model: "",
+      purchaseDate: "",
+      purchasePrice: "",
+      symptoms: ["battery_drain"],
+      problemStarted: "A few days ago",
+      previousRepairs: "No previous repairs",
+      whatHappenedBefore: "No obvious event"
+    });
+    setFormError("");
+    setIsEditing(false);
+    setViewMode("setup");
+  };
+
+  const handleSelectSavedDevice = (dev) => {
+    setActiveDevice(dev);
+    try {
+      localStorage.setItem("e_mortem_active_chatbot_device", JSON.stringify(dev));
+    } catch (err) {}
+
+    const devName = `${dev.brand || ''} ${dev.model || dev.device || ''}`.trim() || dev.device || "Your device";
+    const devAge = dev.age ? `${dev.age} years` : dev.purchaseDate ? `purchased ${dev.purchaseDate}` : "2 years";
+    const devSymptoms = dev.symptoms || ["battery_drain", "shutdown"];
+
+    setConversationContext({
+      deviceName: devName,
+      deviceType: dev.type || "Smartphone",
+      brand: dev.brand || "",
+      model: dev.model || "",
+      deviceAge: devAge,
+      purchaseDate: dev.purchaseDate || "",
+      currentValue: dev.currentValue || 18000,
+      healthScore: dev.healthScore || 64,
+      repairabilityScore: dev.repairabilityScore || 78,
+      recommendation: dev.repairVsReplace?.recommendation || "REPAIR FIRST",
+      symptoms: devSymptoms,
+      priorEvent: dev.priorEvent || "No obvious event",
+      problemStarted: dev.userStory || "",
+      previousRepairs: dev.previousRepairs || "No",
+      lastTopic: ""
+    });
+
+    setActivePrompts(getDevicePrompts(dev.type, devSymptoms));
+
+    setMessages([
+      {
+        id: Date.now(),
+        sender: "ai",
+        text: `Device profile loaded ✓\nForensic investigation active for ${devName} (${devAge}). How can I assist with your triage?`
+      }
+    ]);
+
+    setViewMode("chat");
+  };
+
+  const handleSubmitProfile = (e) => {
+    if (e) e.preventDefault();
+    if (!formData.brand.trim() || !formData.model.trim()) {
+      setFormError("Please enter both Brand and Model.");
+      return;
+    }
+    setFormError("");
+
+    const formattedType = formData.type === "Phone" ? "Smartphone" : formData.type;
+    const deviceId = isEditing && activeDevice?.id
+      ? activeDevice.id
+      : `EM-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newDeviceData = {
+      id: deviceId,
+      type: formattedType,
+      brand: formData.brand.trim(),
+      model: formData.model.trim(),
+      purchaseDate: formData.purchaseDate.trim() || String(new Date().getFullYear()),
+      purchasePrice: Number(formData.purchasePrice) || 0,
+      currentCondition: "Working with problems",
+      symptoms: formData.symptoms.length > 0 ? formData.symptoms : ["battery_drain"],
+      userStory: `Problem started ${formData.problemStarted}. Immediately before: ${formData.whatHappenedBefore}. Previous repairs: ${formData.previousRepairs}.`,
+      priorEvent: formData.whatHappenedBefore,
+      previousRepairs: formData.previousRepairs
+    };
+
+    const analyzed = analyzeDevice(newDeviceData);
+    setActiveDevice(analyzed);
+    try {
+      localStorage.setItem("e_mortem_active_chatbot_device", JSON.stringify(analyzed));
+    } catch (err) {}
+
+    const devName = `${newDeviceData.brand} ${newDeviceData.model}`.trim();
+    const devAge = newDeviceData.purchaseDate ? `purchased ${newDeviceData.purchaseDate}` : "recently reported";
+
+    setConversationContext({
+      deviceName: devName,
+      deviceType: newDeviceData.type,
+      brand: newDeviceData.brand,
+      model: newDeviceData.model,
+      deviceAge: devAge,
+      purchaseDate: newDeviceData.purchaseDate,
+      currentValue: analyzed.currentValue || 18000,
+      healthScore: analyzed.healthScore || 68,
+      repairabilityScore: analyzed.repairabilityScore || 75,
+      recommendation: analyzed.repairVsReplace?.recommendation || "REPAIR FIRST",
+      symptoms: newDeviceData.symptoms,
+      priorEvent: newDeviceData.priorEvent,
+      problemStarted: formData.problemStarted,
+      previousRepairs: formData.previousRepairs,
+      lastTopic: ""
+    });
+
+    const dynamicPrompts = getDevicePrompts(newDeviceData.type, newDeviceData.symptoms);
+    setActivePrompts(dynamicPrompts);
+
+    if (isEditing) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: "ai",
+          text: `Device profile updated ✓\nUpdated forensic telemetry for ${devName} (${devAge}).\nActive symptoms: ${newDeviceData.symptoms.join(", ")}.`
+        }
+      ]);
+    } else {
+      setMessages([
+        {
+          id: Date.now(),
+          sender: "ai",
+          text: "Device profile created ✓"
+        },
+        {
+          id: Date.now() + 1,
+          sender: "ai",
+          text: `Forensic telemetry profile active for ${devName} (${devAge}).\n\n` +
+            `• Reported Symptoms: ${newDeviceData.symptoms.join(", ")}\n` +
+            `• Preceding Event: ${newDeviceData.priorEvent}\n` +
+            `• Preliminary Health Index: ${analyzed.healthScore}/100 • Verdict: ${analyzed.repairVsReplace?.recommendation || 'REPAIR FIRST'}\n\n` +
+            `How can I help you investigate your ${devName}?`
+        }
+      ]);
+    }
+
+    setIsEditing(false);
+    setViewMode("chat");
+  };
 
   const handleSend = async (textToSend) => {
     const query = (textToSend || inputValue).trim();
@@ -468,12 +839,17 @@ export default function EMortemAIAssistant() {
       const res = await api.askAssistant(query, historyForBackend, {
         device_name: conversationContext.deviceName,
         device_type: conversationContext.deviceType,
+        brand: conversationContext.brand,
+        model: conversationContext.model,
         device_age: conversationContext.deviceAge,
+        purchase_date: conversationContext.purchaseDate,
         current_value: conversationContext.currentValue,
         health_score: conversationContext.healthScore,
         repairability_score: conversationContext.repairabilityScore,
         recommendation: conversationContext.recommendation,
         symptoms: conversationContext.symptoms,
+        prior_event: conversationContext.priorEvent,
+        problem_started: conversationContext.problemStarted,
         last_topic: conversationContext.lastTopic
       });
 
@@ -523,16 +899,19 @@ export default function EMortemAIAssistant() {
   };
 
   const handleReset = () => {
+    const devName = conversationContext.deviceName || "your device";
     setMessages([
       {
         id: 1,
         sender: "ai",
-        text: "Hi! I'm E-Mortem AI, your digital electronic forensic assistant. Ask me why a device might be shutting down, what to ask a repair technician, or whether repair is worth investigating."
+        text: `Hi! I'm E-Mortem AI. Ready to investigate ${devName}. Ask me why it might be shutting down, what to ask a repair technician, or whether repair is worth investigating.`
       }
     ]);
-    setActivePrompts(INITIAL_SUGGESTED_QUESTIONS.map(q => q.label));
+    setActivePrompts(getDevicePrompts(conversationContext.deviceType, conversationContext.symptoms));
     setConversationContext((prev) => ({ ...prev, lastTopic: "" }));
   };
+
+  const ActiveDeviceIcon = getDeviceIcon(conversationContext.deviceType);
 
   return (
     <div className="fixed bottom-6 right-6 z-40">
@@ -552,33 +931,72 @@ export default function EMortemAIAssistant() {
       {isOpen && (
         <div className="w-[360px] sm:w-[420px] h-[580px] bg-[#0C1016] border border-emerald-500/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl">
           {/* Header */}
-          <div className="p-3.5 bg-gradient-to-r from-slate-900 to-[#0C1016] border-b border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                <Bot className="w-5 h-5" />
+          <div className="p-3 bg-gradient-to-r from-slate-900 to-[#0C1016] border-b border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                <Bot className="w-4 h-4" />
               </div>
-              <div>
-                <div className="text-sm font-bold text-white flex items-center gap-1.5 font-sans">
-                  E-Mortem AI
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold">
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-white flex items-center gap-1.5 font-sans">
+                  <span>E-Mortem AI</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold">
                     FORENSIC BOT
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 flex items-center gap-1.5 truncate max-w-[210px]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  <span className="truncate">{conversationContext.deviceName} ({conversationContext.deviceAge})</span>
+                <div className="text-[10px] text-slate-400 flex items-center gap-1 truncate max-w-[200px]">
+                  {conversationContext.deviceName ? (
+                    <>
+                      <ActiveDeviceIcon className="w-3 h-3 text-emerald-400 shrink-0" />
+                      <span className="truncate">{conversationContext.deviceName} ({conversationContext.deviceAge})</span>
+                    </>
+                  ) : (
+                    <span className="text-amber-400/90 font-mono">No active device profile</span>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
-              <button
-                onClick={handleReset}
-                title="Reset conversation"
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-colors"
-              >
-                <RefreshCcw className="w-3.5 h-3.5" />
-              </button>
+            {/* Header Actions */}
+            <div className="flex items-center gap-1 shrink-0">
+              {viewMode === "chat" && conversationContext.deviceName && (
+                <>
+                  <button
+                    onClick={handleOpenEditProfile}
+                    title="Edit Device Profile"
+                    className="px-2 py-1 text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 rounded-md hover:bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-1 transition-all"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span className="hidden sm:inline">Edit</span>
+                  </button>
+                  <button
+                    onClick={handleOpenChangeDevice}
+                    title="Change Device"
+                    className="px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white rounded-md hover:bg-slate-800 border border-slate-700 flex items-center gap-1 transition-all"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span className="hidden sm:inline">Change</span>
+                  </button>
+                </>
+              )}
+
+              {viewMode !== "chat" && activeDevice && (
+                <button
+                  onClick={() => setViewMode("chat")}
+                  className="px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white rounded-md bg-slate-800/80 border border-slate-700 transition-all"
+                >
+                  Chat
+                </button>
+              )}
+
+              {viewMode === "chat" && (
+                <button
+                  onClick={handleReset}
+                  title="Reset conversation"
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-colors"
+                >
+                  <RefreshCcw className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-colors"
@@ -588,104 +1006,382 @@ export default function EMortemAIAssistant() {
             </div>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-2.5 ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                {msg.sender === "ai" && (
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="w-3.5 h-3.5" />
+          {/* VIEW 1: COMPACT DEVICE PROFILE SETUP */}
+          {viewMode === "setup" && (
+            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-[#090D12]">
+              <div className="pb-2 border-b border-slate-800">
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  {isEditing ? "Edit Device Profile" : "Set Up Device Profile"}
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {isEditing
+                    ? "Update hardware specifications and reported symptoms."
+                    : "Enter your device information so E-Mortem AI can run custom postmortem triage."}
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmitProfile} className="space-y-2.5">
+                {/* Device Type */}
+                <div>
+                  <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                    Device Type *
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    {DEVICE_TYPE_OPTIONS.map((t) => (
+                      <option key={t} value={t} className="bg-slate-900 text-white">
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Brand & Model */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                      Brand *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. OnePlus, Apple"
+                      value={formData.brand}
+                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                      Model *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 12, MacBook M2"
+                      value={formData.model}
+                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Purchase Date/Year & Purchase Price */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                      Date / Year of Purchase
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 2025 or Mar 2024"
+                      value={formData.purchaseDate}
+                      onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                      Purchase Price (optional)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 64999"
+                      value={formData.purchasePrice}
+                      onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Current problem / symptoms */}
+                <div>
+                  <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                    Current Problem / Symptoms *
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                    {COMPACT_SYMPTOMS.map((s) => {
+                      const isSelected = formData.symptoms.includes(s.id);
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => toggleSymptom(s.id)}
+                          className={`text-left p-1.5 rounded-lg border text-[10px] transition-all flex items-center justify-between ${
+                            isSelected
+                              ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold"
+                              : "bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200"
+                          }`}
+                        >
+                          <span className="truncate">{s.label}</span>
+                          {isSelected && <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 ml-1" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* When the problem started */}
+                <div>
+                  <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                    When the problem started
+                  </label>
+                  <select
+                    value={formData.problemStarted}
+                    onChange={(e) => setFormData({ ...formData, problemStarted: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    {TIMELINE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt} className="bg-slate-900 text-white">
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Previous repairs / damage */}
+                <div>
+                  <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                    Previous repairs / damage (optional)
+                  </label>
+                  <select
+                    value={formData.previousRepairs}
+                    onChange={(e) => setFormData({ ...formData, previousRepairs: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    {PREVIOUS_REPAIRS_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt} className="bg-slate-900 text-white">
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* What happened immediately before the problem */}
+                <div>
+                  <label className="text-[10px] uppercase font-semibold text-slate-400 block mb-1">
+                    What happened immediately before the problem
+                  </label>
+                  <select
+                    value={formData.whatHappenedBefore}
+                    onChange={(e) => setFormData({ ...formData, whatHappenedBefore: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    {PRIOR_EVENTS_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt} className="bg-slate-900 text-white">
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {formError && (
+                  <div className="text-[11px] text-rose-400 flex items-center gap-1.5 bg-rose-500/10 border border-rose-500/30 rounded-lg p-2">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{formError}</span>
                   </div>
                 )}
-                <div
-                  className={`max-w-[84%] p-3 rounded-xl leading-relaxed whitespace-pre-line ${
-                    msg.sender === "user"
-                      ? "bg-emerald-500 text-slate-950 font-medium rounded-tr-none shadow-md shadow-emerald-500/10"
-                      : "bg-slate-900/95 text-slate-200 border border-slate-800 rounded-tl-none shadow-sm"
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
 
-            {/* Typing Indicator */}
-            {isTyping && (
-              <div className="flex gap-2.5 justify-start">
-                <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot className="w-3.5 h-3.5 animate-spin" />
-                </div>
-                <div className="bg-slate-900/90 text-slate-400 border border-slate-800 rounded-xl rounded-tl-none p-3 flex items-center gap-1.5 text-[11px]">
-                  <span>E-Mortem AI analyzing failure telemetry</span>
-                  <span className="flex gap-0.5">
-                    <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce"></span>
-                    <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.2s]"></span>
-                    <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.4s]"></span>
-                  </span>
-                </div>
-              </div>
-            )}
+                <div className="pt-2 space-y-2">
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{isEditing ? "Save & Update Profile" : "Save Profile & Investigate"}</span>
+                  </button>
 
-            {/* Suggested / Follow-up Questions Area */}
-            {activePrompts && activePrompts.length > 0 && !isTyping && (
-              <div className="pt-2.5 border-t border-slate-800/60 mt-3 space-y-1.5">
-                <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 px-1">
-                  <span>{messages.length === 1 ? "Suggested Questions" : "Suggested Follow-ups"}</span>
-                  {messages.length > 1 && (
+                  {devices && devices.length > 0 && (
                     <button
-                      onClick={() => setActivePrompts(INITIAL_SUGGESTED_QUESTIONS.map(q => q.label))}
-                      className="text-emerald-400 hover:text-emerald-300 font-normal normal-case flex items-center gap-1"
+                      type="button"
+                      onClick={() => setViewMode("select")}
+                      className="w-full py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs transition-colors text-center"
                     >
-                      <RotateCcw className="w-2.5 h-2.5" /> All topics
+                      Choose from Saved Devices
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 gap-1.5">
-                  {activePrompts.map((promptText, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSend(promptText)}
-                      className="w-full text-left p-2 rounded-lg bg-slate-900/60 hover:bg-slate-800/90 border border-slate-800/80 hover:border-emerald-500/40 text-[11px] text-slate-300 hover:text-white flex items-center justify-between gap-2 transition-all group"
-                    >
-                      <span className="truncate">{promptText}</span>
-                      <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
-                    </button>
-                  ))}
+              </form>
+            </div>
+          )}
+
+          {/* VIEW 2: SELECT SAVED DEVICE */}
+          {viewMode === "select" && (
+            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-[#090D12]">
+              <div className="pb-2 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                    Select a device to investigate
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Choose a saved hardware record to begin or switch autopsy triage.
+                  </p>
                 </div>
               </div>
-            )}
 
-            <div ref={messagesEndRef} />
-          </div>
+              <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                {devices && devices.length > 0 ? (
+                  devices.map((dev) => {
+                    const Icon = getDeviceIcon(dev.type);
+                    const isCurrent = activeDevice?.id === dev.id;
+                    const dName = `${dev.brand || ''} ${dev.model || dev.device || ''}`.trim() || dev.device;
+                    return (
+                      <div
+                        key={dev.id}
+                        onClick={() => handleSelectSavedDevice(dev)}
+                        className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                          isCurrent
+                            ? "bg-emerald-500/15 border-emerald-500/60 shadow-sm shadow-emerald-500/10"
+                            : "bg-slate-900/70 border-slate-800 hover:border-emerald-500/40 hover:bg-slate-800/80"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-emerald-400 shrink-0 border border-slate-700">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-white truncate flex items-center gap-1.5">
+                              <span className="truncate">{dName}</span>
+                              {isCurrent && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">
+                                  ACTIVE
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-400 truncate mt-0.5">
+                              {dev.type} • {dev.age ? `${dev.age} yrs` : dev.purchaseDate || "Registered"} • Health: {dev.healthScore || 64}/100
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-6 text-slate-500 text-xs">
+                    No saved devices found in registry.
+                  </div>
+                )}
+              </div>
 
-          {/* Input Box */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2"
-          >
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask E-Mortem AI..."
-              className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
-            />
-            <button
-              type="submit"
-              disabled={!inputValue.trim() || isTyping}
-              className="p-2 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 disabled:opacity-40 transition-all shrink-0 font-semibold"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </button>
-          </form>
+              <div className="pt-2 border-t border-slate-800/80">
+                <button
+                  type="button"
+                  onClick={handleOpenNewProfile}
+                  className="w-full py-2.5 rounded-xl border border-dashed border-emerald-500/40 hover:border-emerald-500 text-emerald-400 hover:text-emerald-300 bg-emerald-500/5 hover:bg-emerald-500/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Set Up New Device Profile</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW 3: CHAT CONVERSATION */}
+          {viewMode === "chat" && (
+            <>
+              {/* Messages Area */}
+              <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex gap-2.5 ${
+                      msg.sender === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    {msg.sender === "ai" && (
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <Bot className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[84%] p-3 rounded-xl leading-relaxed whitespace-pre-line ${
+                        msg.sender === "user"
+                          ? "bg-emerald-500 text-slate-950 font-medium rounded-tr-none shadow-md shadow-emerald-500/10"
+                          : "bg-slate-900/95 text-slate-200 border border-slate-800 rounded-tl-none shadow-sm"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Typing Indicator */}
+                {isTyping && (
+                  <div className="flex gap-2.5 justify-start">
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <Bot className="w-3.5 h-3.5 animate-spin" />
+                    </div>
+                    <div className="bg-slate-900/90 text-slate-400 border border-slate-800 rounded-xl rounded-tl-none p-3 flex items-center gap-1.5 text-[11px]">
+                      <span>E-Mortem AI analyzing failure telemetry</span>
+                      <span className="flex gap-0.5">
+                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce"></span>
+                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.2s]"></span>
+                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.4s]"></span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Suggested / Follow-up Questions Area */}
+                {activePrompts && activePrompts.length > 0 && !isTyping && (
+                  <div className="pt-2 border-t border-slate-800/60 mt-2.5 space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 px-1">
+                      <span>{messages.length <= 2 ? "Suggested Questions" : "Suggested Follow-ups"}</span>
+                      {messages.length > 2 && (
+                        <button
+                          onClick={() => setActivePrompts(getDevicePrompts(conversationContext.deviceType, conversationContext.symptoms))}
+                          className="text-emerald-400 hover:text-emerald-300 font-normal normal-case flex items-center gap-1"
+                        >
+                          <RotateCcw className="w-2.5 h-2.5" /> All topics
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {activePrompts.map((promptText, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleSend(promptText)}
+                          className="w-full text-left p-2 rounded-lg bg-slate-900/60 hover:bg-slate-800/90 border border-slate-800/80 hover:border-emerald-500/40 text-[11px] text-slate-300 hover:text-white flex items-center justify-between gap-2 transition-all group"
+                        >
+                          <span className="truncate">{promptText}</span>
+                          <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input Box */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSend();
+                }}
+                className="p-2.5 bg-slate-950 border-t border-slate-800 flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={`Ask E-Mortem AI about ${conversationContext.deviceName || 'your device'}...`}
+                  className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim() || isTyping}
+                  className="p-2 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 disabled:opacity-40 transition-all shrink-0 font-semibold"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
+            </>
+          )}
         </div>
       )}
     </div>

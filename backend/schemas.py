@@ -163,6 +163,9 @@ class DeviceContext(BaseModel):
     purchase_date: Optional[str] = None
     current_value: Optional[float] = None
     symptoms: Optional[List[str]] = Field(default_factory=list)
+    prior_event: Optional[str] = None
+    problem_started: Optional[str] = None
+    current_condition: Optional[str] = None
     previous_repairs: Optional[str] = None
     health_score: Optional[int] = None
     repairability_score: Optional[int] = None

@@ -412,11 +412,21 @@ def generate_assistant_response(
     elif query_matches(query, ["phone", "smartphone", "iphone", "galaxy s"]):
         device_type = "Smartphone"
 
+    brand = get_ctx_val(context, "brand", "")
+    model = get_ctx_val(context, "model", "")
     device_name = get_ctx_val(context, "device_name", None)
+    if not device_name and (brand or model):
+        device_name = f"{brand} {model}".strip()
     if not device_name or (device_type == "Laptop" and "phone" in device_name.lower()):
-        device_name = f"Demo {device_type}" if device_type != "Smartphone" else "Samsung Galaxy S23"
+        device_name = f"{brand} {model}".strip() if (brand or model) else (f"Your {device_type}" if device_type else "Your device")
 
-    device_age = get_ctx_val(context, "device_age", "2.5 years")
+    purchase_date = get_ctx_val(context, "purchase_date", "")
+    device_age = get_ctx_val(context, "device_age", None)
+    if not device_age:
+        device_age = f"purchased {purchase_date}" if purchase_date else "recently reported"
+
+    prior_event = get_ctx_val(context, "prior_event", "")
+    problem_started = get_ctx_val(context, "problem_started", "")
     health_score = get_ctx_val(context, "health_score", 64)
     repairability_score = get_ctx_val(context, "repairability_score", 78)
     current_value = get_ctx_val(context, "current_value", 18000)
