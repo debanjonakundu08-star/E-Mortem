@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 export default function ProgressBar({
   label,
@@ -6,31 +6,36 @@ export default function ProgressBar({
   max = 100,
   unit = "%",
   color = "emerald",
-  showValue = true
+  showValue = true,
+  height = "h-2"
 }) {
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
   const barColors = {
-    emerald: "bg-emerald-500 shadow-emerald-500/30",
-    amber: "bg-amber-500 shadow-amber-500/30",
-    orange: "bg-orange-500 shadow-orange-500/30",
-    rose: "bg-rose-500 shadow-rose-500/30",
-    sky: "bg-sky-500 shadow-sky-500/30"
-  }[color] || "bg-emerald-500 shadow-emerald-500/30";
+    emerald: "bg-gradient-to-r from-teal-500 to-emerald-400 shadow-sm shadow-emerald-500/20",
+    cyan: "bg-gradient-to-r from-cyan-500 to-teal-400 shadow-sm shadow-cyan-500/20",
+    amber: "bg-gradient-to-r from-amber-500 to-orange-400 shadow-sm shadow-amber-500/20",
+    orange: "bg-gradient-to-r from-orange-500 to-amber-400 shadow-sm shadow-orange-500/20",
+    rose: "bg-gradient-to-r from-rose-500 to-red-500 shadow-sm shadow-rose-500/20",
+    violet: "bg-gradient-to-r from-indigo-500 to-violet-400 shadow-sm shadow-violet-500/20",
+    sky: "bg-gradient-to-r from-sky-500 to-blue-400 shadow-sm shadow-sky-500/20"
+  }[color] || "bg-gradient-to-r from-teal-500 to-emerald-400";
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-1.5 text-xs">
-        <span className="font-medium text-slate-300">{label}</span>
-        {showValue && (
-          <span className="font-semibold text-slate-100">
-            {value}{unit}
-          </span>
-        )}
-      </div>
-      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/60">
+      {(label || showValue) && (
+        <div className="flex justify-between items-center mb-1.5 text-xs">
+          {label && <span className="font-medium text-slate-300">{label}</span>}
+          {showValue && (
+            <span className="font-semibold text-slate-200 font-mono text-[11px]">
+              {value}{unit}
+            </span>
+          )}
+        </div>
+      )}
+      <div className={`w-full ${height} bg-slate-900/90 rounded-full overflow-hidden p-0.5 border border-slate-800`}>
         <div
-          className={`h-full rounded-full transition-all duration-700 ease-out shadow-sm ${barColors}`}
+          className={`h-full rounded-full transition-all duration-700 ease-out ${barColors}`}
           style={{ width: `${percentage}%` }}
         />
       </div>

@@ -919,7 +919,7 @@ export default function EMortemAIAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold text-xs sm:text-sm shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all"
+          className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-950 font-bold text-xs sm:text-sm shadow-glow-teal hover:scale-105 active:scale-95 transition-all"
         >
           <Bot className="w-5 h-5" />
           <span>E-Mortem AI</span>
@@ -929,25 +929,25 @@ export default function EMortemAIAssistant() {
 
       {/* Assistant Modal / Drawer */}
       {isOpen && (
-        <div className="w-[360px] sm:w-[420px] h-[580px] bg-[#0C1016] border border-emerald-500/30 rounded-2xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl">
+        <div className="w-[360px] sm:w-[420px] h-[580px] bg-charcoal-950/95 border border-teal-500/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl">
           {/* Header */}
-          <div className="p-3 bg-gradient-to-r from-slate-900 to-[#0C1016] border-b border-slate-800 flex items-center justify-between">
+          <div className="p-3.5 bg-gradient-to-r from-charcoal-900 to-charcoal-950 border-b border-charcoal-800 flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+              <div className="p-2 rounded-xl bg-teal-500/15 text-teal-300 border border-teal-500/30 shrink-0 shadow-sm">
                 <Bot className="w-4 h-4" />
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-bold text-white flex items-center gap-1.5 font-sans">
                   <span>E-Mortem AI</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold">
-                    FORENSIC BOT
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-mono font-semibold">
+                    FORENSIC ASSISTANT
                   </span>
                 </div>
                 <div className="text-[10px] text-slate-400 flex items-center gap-1 truncate max-w-[200px]">
                   {conversationContext.deviceName ? (
                     <>
-                      <ActiveDeviceIcon className="w-3 h-3 text-emerald-400 shrink-0" />
-                      <span className="truncate">{conversationContext.deviceName} ({conversationContext.deviceAge})</span>
+                      <ActiveDeviceIcon className="w-3 h-3 text-teal-400 shrink-0" />
+                      <span className="truncate text-slate-300 font-medium">{conversationContext.deviceName} ({conversationContext.deviceAge})</span>
                     </>
                   ) : (
                     <span className="text-amber-400/90 font-mono">No active device profile</span>
@@ -963,7 +963,7 @@ export default function EMortemAIAssistant() {
                   <button
                     onClick={handleOpenEditProfile}
                     title="Edit Device Profile"
-                    className="px-2 py-1 text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 rounded-md hover:bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-1 transition-all"
+                    className="px-2 py-1 text-[10px] font-semibold text-teal-300 hover:text-white rounded-lg hover:bg-teal-500/10 border border-teal-500/30 flex items-center gap-1 transition-all"
                   >
                     <Edit3 className="w-3 h-3" />
                     <span className="hidden sm:inline">Edit</span>
@@ -971,7 +971,7 @@ export default function EMortemAIAssistant() {
                   <button
                     onClick={handleOpenChangeDevice}
                     title="Change Device"
-                    className="px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white rounded-md hover:bg-slate-800 border border-slate-700 flex items-center gap-1 transition-all"
+                    className="px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white rounded-lg hover:bg-charcoal-800 border border-charcoal-700 flex items-center gap-1 transition-all"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span className="hidden sm:inline">Change</span>
@@ -982,7 +982,7 @@ export default function EMortemAIAssistant() {
               {viewMode !== "chat" && activeDevice && (
                 <button
                   onClick={() => setViewMode("chat")}
-                  className="px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white rounded-md bg-slate-800/80 border border-slate-700 transition-all"
+                  className="px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white rounded-lg bg-charcoal-800 border border-charcoal-700 transition-all"
                 >
                   Chat
                 </button>
@@ -992,14 +992,14 @@ export default function EMortemAIAssistant() {
                 <button
                   onClick={handleReset}
                   title="Reset conversation"
-                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-charcoal-800 transition-colors"
                 >
                   <RefreshCcw className="w-3.5 h-3.5" />
                 </button>
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 transition-colors"
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-charcoal-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1008,10 +1008,10 @@ export default function EMortemAIAssistant() {
 
           {/* VIEW 1: COMPACT DEVICE PROFILE SETUP */}
           {viewMode === "setup" && (
-            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-[#090D12]">
-              <div className="pb-2 border-b border-slate-800">
+            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-charcoal-950">
+              <div className="pb-2 border-b border-charcoal-800">
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <ShieldCheck className="w-4 h-4 text-teal-400" />
                   {isEditing ? "Edit Device Profile" : "Set Up Device Profile"}
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">
@@ -1030,10 +1030,10 @@ export default function EMortemAIAssistant() {
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-400"
                   >
                     {DEVICE_TYPE_OPTIONS.map((t) => (
-                      <option key={t} value={t} className="bg-slate-900 text-white">
+                      <option key={t} value={t} className="bg-charcoal-900 text-white">
                         {t}
                       </option>
                     ))}
@@ -1051,7 +1051,7 @@ export default function EMortemAIAssistant() {
                       placeholder="e.g. OnePlus, Apple"
                       value={formData.brand}
                       onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
                     />
                   </div>
                   <div>
@@ -1063,7 +1063,7 @@ export default function EMortemAIAssistant() {
                       placeholder="e.g. 12, MacBook M2"
                       value={formData.model}
                       onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
                     />
                   </div>
                 </div>
@@ -1079,7 +1079,7 @@ export default function EMortemAIAssistant() {
                       placeholder="e.g. 2025 or Mar 2024"
                       value={formData.purchaseDate}
                       onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
                     />
                   </div>
                   <div>
@@ -1091,7 +1091,7 @@ export default function EMortemAIAssistant() {
                       placeholder="e.g. 64999"
                       value={formData.purchasePrice}
                       onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400"
                     />
                   </div>
                 </div>
@@ -1109,14 +1109,14 @@ export default function EMortemAIAssistant() {
                           key={s.id}
                           type="button"
                           onClick={() => toggleSymptom(s.id)}
-                          className={`text-left p-1.5 rounded-lg border text-[10px] transition-all flex items-center justify-between ${
+                          className={`text-left p-2 rounded-xl border text-[10px] transition-all flex items-center justify-between ${
                             isSelected
-                              ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold"
-                              : "bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200"
+                              ? "bg-teal-500/20 border-teal-500 text-teal-300 font-semibold"
+                              : "bg-charcoal-900 border-charcoal-800 text-slate-400 hover:text-slate-200"
                           }`}
                         >
                           <span className="truncate">{s.label}</span>
-                          {isSelected && <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 ml-1" />}
+                          {isSelected && <CheckCircle2 className="w-3 h-3 text-teal-400 shrink-0 ml-1" />}
                         </button>
                       );
                     })}
@@ -1131,10 +1131,10 @@ export default function EMortemAIAssistant() {
                   <select
                     value={formData.problemStarted}
                     onChange={(e) => setFormData({ ...formData, problemStarted: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-400"
                   >
                     {TIMELINE_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt} className="bg-slate-900 text-white">
+                      <option key={opt} value={opt} className="bg-charcoal-900 text-white">
                         {opt}
                       </option>
                     ))}
@@ -1149,10 +1149,10 @@ export default function EMortemAIAssistant() {
                   <select
                     value={formData.previousRepairs}
                     onChange={(e) => setFormData({ ...formData, previousRepairs: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-400"
                   >
                     {PREVIOUS_REPAIRS_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt} className="bg-slate-900 text-white">
+                      <option key={opt} value={opt} className="bg-charcoal-900 text-white">
                         {opt}
                       </option>
                     ))}
@@ -1167,10 +1167,10 @@ export default function EMortemAIAssistant() {
                   <select
                     value={formData.whatHappenedBefore}
                     onChange={(e) => setFormData({ ...formData, whatHappenedBefore: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-charcoal-900 border border-charcoal-800 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-teal-400"
                   >
                     {PRIOR_EVENTS_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt} className="bg-slate-900 text-white">
+                      <option key={opt} value={opt} className="bg-charcoal-900 text-white">
                         {opt}
                       </option>
                     ))}
@@ -1178,8 +1178,8 @@ export default function EMortemAIAssistant() {
                 </div>
 
                 {formError && (
-                  <div className="text-[11px] text-rose-400 flex items-center gap-1.5 bg-rose-500/10 border border-rose-500/30 rounded-lg p-2">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <div className="text-[11px] text-rose-300 flex items-center gap-1.5 bg-rose-500/15 border border-rose-500/30 rounded-xl p-2.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
                     <span>{formError}</span>
                   </div>
                 )}
@@ -1187,7 +1187,7 @@ export default function EMortemAIAssistant() {
                 <div className="pt-2 space-y-2">
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-950 font-bold text-xs shadow-glow-teal hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-1.5"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{isEditing ? "Save & Update Profile" : "Save Profile & Investigate"}</span>
@@ -1197,7 +1197,7 @@ export default function EMortemAIAssistant() {
                     <button
                       type="button"
                       onClick={() => setViewMode("select")}
-                      className="w-full py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white text-xs transition-colors text-center"
+                      className="w-full py-2 rounded-xl bg-charcoal-900 hover:bg-charcoal-800 border border-charcoal-800 text-slate-400 hover:text-white text-xs transition-colors text-center"
                     >
                       Choose from Saved Devices
                     </button>
@@ -1209,8 +1209,8 @@ export default function EMortemAIAssistant() {
 
           {/* VIEW 2: SELECT SAVED DEVICE */}
           {viewMode === "select" && (
-            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-[#090D12]">
-              <div className="pb-2 border-b border-slate-800 flex items-center justify-between">
+            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-charcoal-950">
+              <div className="pb-2 border-b border-charcoal-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
                     Select a device to investigate
@@ -1231,21 +1231,21 @@ export default function EMortemAIAssistant() {
                       <div
                         key={dev.id}
                         onClick={() => handleSelectSavedDevice(dev)}
-                        className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                        className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
                           isCurrent
-                            ? "bg-emerald-500/15 border-emerald-500/60 shadow-sm shadow-emerald-500/10"
-                            : "bg-slate-900/70 border-slate-800 hover:border-emerald-500/40 hover:bg-slate-800/80"
+                            ? "bg-teal-500/15 border-teal-500/60 shadow-sm shadow-teal-500/10"
+                            : "bg-charcoal-900 border-charcoal-800 hover:border-teal-500/40 hover:bg-charcoal-800/80"
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-emerald-400 shrink-0 border border-slate-700">
+                          <div className="w-8 h-8 rounded-xl bg-charcoal-800 flex items-center justify-center text-teal-400 shrink-0 border border-charcoal-700">
                             <Icon className="w-4 h-4" />
                           </div>
                           <div className="min-w-0">
                             <div className="text-xs font-semibold text-white truncate flex items-center gap-1.5">
                               <span className="truncate">{dName}</span>
                               {isCurrent && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-mono">
                                   ACTIVE
                                 </span>
                               )}
@@ -1266,11 +1266,11 @@ export default function EMortemAIAssistant() {
                 )}
               </div>
 
-              <div className="pt-2 border-t border-slate-800/80">
+              <div className="pt-2 border-t border-charcoal-800">
                 <button
                   type="button"
                   onClick={handleOpenNewProfile}
-                  className="w-full py-2.5 rounded-xl border border-dashed border-emerald-500/40 hover:border-emerald-500 text-emerald-400 hover:text-emerald-300 bg-emerald-500/5 hover:bg-emerald-500/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                  className="w-full py-2.5 rounded-xl border border-dashed border-teal-500/40 hover:border-teal-400 text-teal-300 hover:text-teal-200 bg-teal-500/5 hover:bg-teal-500/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Set Up New Device Profile</span>
@@ -1283,7 +1283,7 @@ export default function EMortemAIAssistant() {
           {viewMode === "chat" && (
             <>
               {/* Messages Area */}
-              <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs">
+              <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-charcoal-950">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -1292,15 +1292,15 @@ export default function EMortemAIAssistant() {
                     }`}
                   >
                     {msg.sender === "ai" && (
-                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-7 h-7 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-300 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                         <Bot className="w-3.5 h-3.5" />
                       </div>
                     )}
                     <div
-                      className={`max-w-[84%] p-3 rounded-xl leading-relaxed whitespace-pre-line ${
+                      className={`max-w-[84%] p-3.5 rounded-2xl leading-relaxed whitespace-pre-line ${
                         msg.sender === "user"
-                          ? "bg-emerald-500 text-slate-950 font-medium rounded-tr-none shadow-md shadow-emerald-500/10"
-                          : "bg-slate-900/95 text-slate-200 border border-slate-800 rounded-tl-none shadow-sm"
+                          ? "bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-950 font-medium rounded-tr-none shadow-glow-teal"
+                          : "bg-charcoal-900/90 text-slate-200 border border-charcoal-800 rounded-tl-none shadow-sm"
                       }`}
                     >
                       {msg.text}
@@ -1311,15 +1311,15 @@ export default function EMortemAIAssistant() {
                 {/* Typing Indicator */}
                 {isTyping && (
                   <div className="flex gap-2.5 justify-start">
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-300 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                       <Bot className="w-3.5 h-3.5 animate-spin" />
                     </div>
-                    <div className="bg-slate-900/90 text-slate-400 border border-slate-800 rounded-xl rounded-tl-none p-3 flex items-center gap-1.5 text-[11px]">
+                    <div className="bg-charcoal-900/90 text-slate-400 border border-charcoal-800 rounded-2xl rounded-tl-none p-3 flex items-center gap-1.5 text-[11px]">
                       <span>E-Mortem AI analyzing failure telemetry</span>
                       <span className="flex gap-0.5">
-                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce"></span>
-                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.2s]"></span>
-                        <span className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.4s]"></span>
+                        <span className="w-1 h-1 rounded-full bg-teal-400 animate-bounce"></span>
+                        <span className="w-1 h-1 rounded-full bg-teal-400 animate-bounce [animation-delay:0.2s]"></span>
+                        <span className="w-1 h-1 rounded-full bg-teal-400 animate-bounce [animation-delay:0.4s]"></span>
                       </span>
                     </div>
                   </div>
@@ -1327,13 +1327,13 @@ export default function EMortemAIAssistant() {
 
                 {/* Suggested / Follow-up Questions Area */}
                 {activePrompts && activePrompts.length > 0 && !isTyping && (
-                  <div className="pt-2 border-t border-slate-800/60 mt-2.5 space-y-1.5">
+                  <div className="pt-2 border-t border-charcoal-800 mt-2.5 space-y-1.5">
                     <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-1 px-1">
                       <span>{messages.length <= 2 ? "Suggested Questions" : "Suggested Follow-ups"}</span>
                       {messages.length > 2 && (
                         <button
                           onClick={() => setActivePrompts(getDevicePrompts(conversationContext.deviceType, conversationContext.symptoms))}
-                          className="text-emerald-400 hover:text-emerald-300 font-normal normal-case flex items-center gap-1"
+                          className="text-teal-400 hover:text-teal-300 font-normal normal-case flex items-center gap-1"
                         >
                           <RotateCcw className="w-2.5 h-2.5" /> All topics
                         </button>
@@ -1344,10 +1344,10 @@ export default function EMortemAIAssistant() {
                         <button
                           key={idx}
                           onClick={() => handleSend(promptText)}
-                          className="w-full text-left p-2 rounded-lg bg-slate-900/60 hover:bg-slate-800/90 border border-slate-800/80 hover:border-emerald-500/40 text-[11px] text-slate-300 hover:text-white flex items-center justify-between gap-2 transition-all group"
+                          className="w-full text-left p-2.5 rounded-xl bg-charcoal-900/80 hover:bg-charcoal-850 border border-charcoal-800 hover:border-teal-500/40 text-[11px] text-slate-300 hover:text-white flex items-center justify-between gap-2 transition-all group"
                         >
                           <span className="truncate">{promptText}</span>
-                          <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-emerald-400 shrink-0 transition-colors" />
+                          <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-teal-400 shrink-0 transition-colors" />
                         </button>
                       ))}
                     </div>
@@ -1363,21 +1363,21 @@ export default function EMortemAIAssistant() {
                   e.preventDefault();
                   handleSend();
                 }}
-                className="p-2.5 bg-slate-950 border-t border-slate-800 flex items-center gap-2"
+                className="p-3 bg-charcoal-950 border-t border-charcoal-800 flex items-center gap-2"
               >
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder={`Ask E-Mortem AI about ${conversationContext.deviceName || 'your device'}...`}
-                  className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="flex-1 bg-charcoal-900 border border-charcoal-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isTyping}
-                  className="p-2 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 disabled:opacity-40 transition-all shrink-0 font-semibold"
+                  className="p-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-950 hover:opacity-90 disabled:opacity-40 transition-all shrink-0 font-semibold shadow-glow-teal"
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  <Send className="w-3.5 h-3.5 text-slate-950" />
                 </button>
               </form>
             </>
