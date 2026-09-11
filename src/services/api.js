@@ -98,6 +98,14 @@ export const api = {
       body: JSON.stringify({ message, history, context }),
     });
   },
+
+  // Market Pricing / Valuation endpoint
+  async getPricingEstimate(deviceData) {
+    return request("/api/pricing/estimate", {
+      method: "POST",
+      body: JSON.stringify(deviceData),
+    });
+  },
 };
 
 export default api;

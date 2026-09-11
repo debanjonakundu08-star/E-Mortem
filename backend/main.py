@@ -16,6 +16,7 @@ import models
 import schemas
 from analysis_engine import analyze_device_telemetry
 from seed_data import seed_database
+from pricing_service import get_device_market_pricing
 
 # Initialize database schema and seeds safely
 try:
@@ -54,6 +55,31 @@ def get_health():
         "status": "ok",
         "service": "E-Mortem API"
     }
+
+# --------------------------------------------------------------------------
+# Dynamic Market Pricing & Repair Valuation Endpoint
+# --------------------------------------------------------------------------
+@app.post("/api/pricing/estimate", tags=["Pricing"])
+def get_pricing_estimate(req: Dict[str, Any]):
+    brand = str(req.get("brand") or "").strip()
+    model = str(req.get("model") or "").strip()
+    device_type = str(req.get("device_type") or "Smartphone")
+    age_years = float(req.get("age_years") or req.get("age") or 2.0)
+    condition = str(req.get("condition") or "working_with_problems")
+    symptoms = req.get("symptoms", [])
+    purchase_price = float(req.get("purchase_price") or 0.0)
+    is_water_damaged = bool(req.get("is_water_damaged") or False)
+
+    return get_device_market_pricing(
+        brand=brand,
+        model=model,
+        device_type=device_type,
+        age_years=age_years,
+        condition=condition,
+        symptoms=symptoms,
+        purchase_price=purchase_price,
+        is_water_damaged=is_water_damaged
+    )
 
 # --------------------------------------------------------------------------
 # Devices Endpoints
@@ -1023,6 +1049,49 @@ def generate_assistant_response(
 @app.post("/api/assistant", response_model=schemas.AssistantResponse, tags=["Assistant"])
 def ask_assistant(req: schemas.AssistantRequest):
     return generate_assistant_response(req.message, req.history, req.context)
+
+@app.post("/api/pricing/estimate", tags=["Pricing"])
+def get_pricing_estimate(payload: Dict[str, Any]):
+    brand = str(payload.get("brand") or "").strip()
+    model = str(payload.get("model") or "").strip()
+    device_type = str(payload.get("deviceType") or payload.get("device_type") or "Smartphone").strip()
+    purchase_date = str(payload.get("purchaseDate") or payload.get("purchase_date") or "")
+    purchase_price = float(payload.get("purchasePrice") or payload.get("purchase_price") or 0.0)
+    condition = str(payload.get("condition") or "working_with_problems")
+    raw_symptoms = list(payload.get("symptoms") or [])
+    if isinstance(raw_symptoms, str):
+        raw_symptoms = [raw_symptoms]
+    if payload.get("problem"):
+        raw_symptoms.append(str(payload.get("problem")))
+    print(f"DEBUG get_pricing_estimate raw_symptoms: {raw_symptoms}")
+    
+    # Calculate age in years
+    age_years = 2.0
+    if purchase_date:
+        try:
+            p_dt = datetime.strptime(purchase_date[:10], "%Y-%m-%d")
+            age_years = max(0.2, (datetime.now() - p_dt).days / 365.25)
+        except Exception:
+            try:
+                matched_yr = re.search(r"\b(20\d\d)\b", purchase_date)
+                if matched_yr:
+                    age_years = max(0.5, float(datetime.now().year - int(matched_yr.group(1))))
+            except Exception:
+                age_years = 2.0
+
+    is_water_damaged = bool(payload.get("is_water_damaged") or any("water" in str(s).lower() or "liquid" in str(s).lower() for s in raw_symptoms))
+
+    pricing = get_device_market_pricing(
+        brand=brand,
+        model=model,
+        device_type=device_type,
+        age_years=age_years,
+        condition=condition,
+        symptoms=raw_symptoms,
+        purchase_price=purchase_price,
+        is_water_damaged=is_water_damaged
+    )
+    return pricing
 
 if __name__ == "__main__":
     import uvicorn

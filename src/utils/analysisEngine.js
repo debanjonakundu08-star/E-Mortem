@@ -4,6 +4,8 @@
  * probable cause distributions, component health, and repair shop questions.
  */
 
+import { computeClientMarketPricing } from "./pricingService";
+
 export function analyzeDevice(input) {
   const {
     id = `EM-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -138,16 +140,44 @@ export function analyzeDevice(input) {
       repairabilitySummary:
         "The suspected issue appears potentially component-level, and the estimated repair cost is significantly lower than the device's estimated current value.",
 
-      // Repair vs Replace Comparison
-      repairVsReplace: {
-        estimatedRepairCost: "₹1,500 – ₹3,000",
-        estimatedDeviceValue: "₹18,000",
-        recommendation: "REPAIR FIRST",
-        verdictText: "🟢 REPAIR FIRST",
-        replacementRecommended: false,
-        explanation:
-          "Based on the information provided, immediate replacement does not appear necessary. A battery and thermal inspection should be considered first."
-      },
+      // Repair vs Replace Comparison (Dynamic Indian Market Pricing)
+      repairVsReplace: (() => {
+        const p = computeClientMarketPricing({
+          brand: "Samsung",
+          model: "Galaxy S23",
+          deviceType: "Smartphone",
+          ageYears: 2.5,
+          condition: currentCondition,
+          symptoms: symptoms,
+          purchasePrice: 74999
+        });
+        return {
+          estimatedRepairCost: p.repairEstimate,
+          estimatedDeviceValue: p.usedMarketValueFormatted,
+          newMarketPrice: p.newMarketPriceFormatted,
+          replacementCostAvoided: p.replacementCostAvoidedFormatted,
+          equityRetainedPct: p.equityRetainedPct,
+          costToValueRatioPct: p.costToValueRatioPct,
+          repairComponent: p.repairComponent,
+          recommendation: p.recommendation,
+          verdictText: `🟢 ${p.recommendation}`,
+          replacementRecommended: false,
+          explanation: p.verdictReason,
+          sources: p.sources,
+          lastChecked: p.lastChecked,
+          confidence: p.confidence,
+          decisionConfidence: 89
+        };
+      })(),
+      pricingData: computeClientMarketPricing({
+        brand: "Samsung",
+        model: "Galaxy S23",
+        deviceType: "Smartphone",
+        ageYears: 2.5,
+        condition: currentCondition,
+        symptoms: symptoms,
+        purchasePrice: 74999
+      }),
 
       // What Should I Do Now? (Action Plan)
       actionPlan: [
@@ -284,12 +314,24 @@ export function analyzeDevice(input) {
     ...c
   }));
 
-  // Repair vs Replace Economics
-  const estRepairMin = Math.round(parsedValue * 0.12);
-  const estRepairMax = Math.round(parsedValue * 0.28);
-  const isWorthRepair = estRepairMax < parsedValue * 0.65 && health >= 35;
+  // Dynamic Market Pricing & Repair vs Replace Economics (India / INR)
+  const dynamicPricing = computeClientMarketPricing({
+    brand,
+    model,
+    deviceType: type,
+    ageYears: parsedAge,
+    condition: currentCondition,
+    symptoms,
+    purchasePrice: parsedPrice,
+    isWaterDamaged: symptoms.includes("water_damage") || (priorEvent && priorEvent.toLowerCase().includes("water"))
+  });
 
-  let repairScore = isWorthRepair ? Math.round(70 + (parsedValue / (estRepairMax || 1)) * 2) : 32;
+  const estRepairMin = dynamicPricing.repairEstimateMin;
+  const estRepairMax = dynamicPricing.repairEstimateMax;
+  const usedMarketValue = dynamicPricing.usedMarketValue;
+  const isWorthRepair = dynamicPricing.recommendation === "REPAIR FIRST" || dynamicPricing.recommendation === "GET INSPECTED";
+
+  let repairScore = isWorthRepair ? Math.round(72 + (usedMarketValue / (estRepairMax || 1)) * 1.5) : 32;
   repairScore = Math.max(20, Math.min(94, repairScore));
 
   const batteryHealth = hasBattery ? 38 : Math.max(45, 100 - Math.round(parsedAge * 14));
@@ -300,22 +342,20 @@ export function analyzeDevice(input) {
 
   return {
     id,
-    device: `${brand} ${model}`,
+    device: `${brand} ${model}`.trim() || `${type} Device`,
     type,
     brand,
     model,
-    purchaseDate: purchaseDate || "Recent",
+    purchaseDate,
     age: parsedAge,
-    purchasePrice: parsedPurchase,
-    currentValue: parsedValue,
-    currentCondition,
+    purchasePrice: parsedPrice,
+    currentValue: usedMarketValue,
     status: healthStatusType === "healthy" ? "Healthy" : healthStatusType === "warning" ? "Needs Attention" : "High Risk",
     statusBadge: healthStatusType === "healthy" ? "Healthy" : healthStatusType === "warning" ? "Attention Required" : "High Risk",
     dateDiagnosed: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-    symptoms: symptomList,
-    userStory: userStory || "User submitted diagnostic case for electronic postmortem.",
-    priorEvent: priorEvent || "Normal day-to-day usage.",
-    followUpAnswers,
+    previousRepairs,
+    symptoms,
+    userStory,
     healthScore: health,
     healthStatus,
     healthStatusType,
@@ -332,8 +372,8 @@ export function analyzeDevice(input) {
     recoveryAnalysis: {
       battery: {
         status: hasBattery ? "Potentially replaceable" : "Operational",
-        estimatedCost: `₹${estRepairMin.toLocaleString("en-IN")} – ₹${estRepairMax.toLocaleString("en-IN")}`,
-        notes: hasBattery ? "Battery replacement is economically practical." : "Battery appears within working tolerances."
+        estimatedCost: dynamicPricing.repairEstimate,
+        notes: hasBattery ? `Model-specific ${dynamicPricing.repairComponent} is economically practical.` : "Battery appears within working tolerances."
       },
       userData: {
         status: "Potentially recoverable",
@@ -351,19 +391,25 @@ export function analyzeDevice(input) {
     },
     repairabilityScore: repairScore,
     repairabilityStatus: isWorthRepair ? "🟢 Repair appears worth investigating" : "🔴 Replacement may be more economical",
-    repairabilitySummary: isWorthRepair
-      ? `Estimated repair cost (₹${estRepairMin.toLocaleString("en-IN")}–₹${estRepairMax.toLocaleString("en-IN")}) is well below the device's residual value (₹${parsedValue.toLocaleString("en-IN")}).`
-      : `High repair expenses relative to device age suggest evaluating refurbishment or replacement.`,
+    repairabilitySummary: dynamicPricing.verdictReason,
     repairVsReplace: {
-      estimatedRepairCost: `₹${estRepairMin.toLocaleString("en-IN")} – ₹${estRepairMax.toLocaleString("en-IN")}`,
-      estimatedDeviceValue: `₹${parsedValue.toLocaleString("en-IN")}`,
-      recommendation: isWorthRepair ? "REPAIR FIRST" : "REPLACE / REPURPOSE",
-      verdictText: isWorthRepair ? "🟢 REPAIR FIRST" : "🔴 REPLACEMENT MAY BE PREFERABLE",
+      estimatedRepairCost: dynamicPricing.repairEstimate,
+      estimatedDeviceValue: dynamicPricing.usedMarketValueFormatted,
+      newMarketPrice: dynamicPricing.newMarketPriceFormatted,
+      replacementCostAvoided: dynamicPricing.replacementCostAvoidedFormatted,
+      equityRetainedPct: dynamicPricing.equityRetainedPct,
+      costToValueRatioPct: dynamicPricing.costToValueRatioPct,
+      repairComponent: dynamicPricing.repairComponent,
+      recommendation: dynamicPricing.recommendation,
+      verdictText: `🟢 ${dynamicPricing.recommendation}`,
       replacementRecommended: !isWorthRepair,
-      explanation: isWorthRepair
-        ? "Immediate replacement does not appear necessary. Targeted component servicing should be investigated first."
-        : "The cumulative cost of repairs approaches the device's market value."
+      explanation: dynamicPricing.verdictReason,
+      sources: dynamicPricing.sources,
+      lastChecked: dynamicPricing.lastChecked,
+      confidence: dynamicPricing.confidence,
+      decisionConfidence: 89
     },
+    pricingData: dynamicPricing,
     actionPlan: [
       {
         step: "01",

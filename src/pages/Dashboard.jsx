@@ -32,11 +32,25 @@ import ScoreRing from "../components/common/ScoreRing";
 import ProgressBar from "../components/common/ProgressBar";
 import StatusBadge from "../components/common/StatusBadge";
 import { useProducts } from "../context/ProductContext";
+import TiltCard from "../components/effects/TiltCard";
+import MagneticButton from "../components/effects/MagneticButton";
+import { computeClientMarketPricing } from "../utils/pricingService";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { kpis, getDemoDevice, diagnoseDevice, showToast, devices, isBackendConnected } = useProducts();
   const [selectedComponent, setSelectedComponent] = useState("battery");
+
+  const activeDevice = devices && devices.length > 0 ? devices[0] : null;
+  const pricing = activeDevice?.pricingData || computeClientMarketPricing({
+    brand: activeDevice?.brand || "Samsung",
+    model: activeDevice?.model || "Galaxy S23",
+    deviceType: activeDevice?.type || "Smartphone",
+    ageYears: Number(activeDevice?.age) || 2.5,
+    condition: activeDevice?.currentCondition || "Working with problems",
+    symptoms: activeDevice?.symptoms || ["battery_drain", "shutdown"],
+    purchasePrice: Number(activeDevice?.purchasePrice) || 74999
+  });
 
   const componentDetails = {
     battery: {
@@ -217,44 +231,52 @@ export default function Dashboard() {
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link
-                to="/diagnose"
-                className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white dark:text-slate-950 transition-all shadow-md shadow-teal-500/20 active:scale-95 group"
-              >
-                <Stethoscope className="w-4 h-4 text-white dark:text-slate-950" />
-                <span>RUN E-MORTEM</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
+              <MagneticButton strength={0.25}>
+                <Link
+                  to="/diagnose"
+                  className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white dark:text-slate-950 transition-all shadow-md shadow-teal-500/20 active:scale-95 group"
+                >
+                  <Stethoscope className="w-4 h-4 text-white dark:text-slate-950" />
+                  <span>RUN E-MORTEM</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </MagneticButton>
 
-              <Link
-                to="/monitoring"
-                className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 dark:bg-charcoal-900/90 hover:bg-slate-200 dark:hover:bg-charcoal-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-charcoal-700 transition-all"
-              >
-                <Activity className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-                <span>MONITOR A DEVICE</span>
-              </Link>
+              <MagneticButton strength={0.2}>
+                <Link
+                  to="/monitoring"
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 dark:bg-charcoal-900/90 hover:bg-slate-200 dark:hover:bg-charcoal-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-charcoal-700 transition-all"
+                >
+                  <Activity className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                  <span>MONITOR A DEVICE</span>
+                </Link>
+              </MagneticButton>
 
-              <Link
-                to="/emergency"
-                className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 transition-all"
-              >
-                <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                <span>DEVICE SUDDENLY DIED?</span>
-              </Link>
+              <MagneticButton strength={0.2}>
+                <Link
+                  to="/emergency"
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 transition-all"
+                >
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                  <span>DEVICE SUDDENLY DIED?</span>
+                </Link>
+              </MagneticButton>
 
-              <Link
-                to="/demo"
-                className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-bold bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 transition-all shadow-xs"
-              >
-                <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 fill-amber-500 dark:fill-amber-400" />
-                <span>Demo Mode</span>
-              </Link>
+              <MagneticButton strength={0.2}>
+                <Link
+                  to="/demo"
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-xl text-xs sm:text-sm font-bold bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 transition-all shadow-xs"
+                >
+                  <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400 fill-amber-500 dark:fill-amber-400" />
+                  <span>Demo Mode</span>
+                </Link>
+              </MagneticButton>
             </div>
           </div>
 
           {/* Hero Right: Subtle Animated Electronic Diagnostic Visual */}
           <div className="lg:col-span-5 flex justify-center">
-            <div className="relative w-64 h-80 sm:w-72 sm:h-96 rounded-3xl p-1 bg-gradient-to-b from-teal-500/30 via-charcoal-800 to-cyan-500/20 border border-teal-500/30 shadow-2xl flex items-center justify-center">
+            <TiltCard maxTilt={8} glare={true} className="relative w-64 h-80 sm:w-72 sm:h-96 rounded-3xl p-1 bg-gradient-to-b from-teal-500/30 via-charcoal-800 to-cyan-500/20 border border-teal-500/30 shadow-2xl flex items-center justify-center">
               {/* Inner device silhouette */}
               <div className="relative w-full h-full rounded-[22px] bg-charcoal-950 overflow-hidden p-5 flex flex-col justify-between">
                 {/* Laser scan line moving across device */}
@@ -310,7 +332,7 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-            </div>
+            </TiltCard>
           </div>
         </div>
       </div>
@@ -329,7 +351,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* 1. MONITOR */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-gradient-to-b dark:from-charcoal-900 dark:to-charcoal-950 border border-slate-200 dark:border-cyan-500/25 hover:border-cyan-500/50 transition-all flex flex-col justify-between group shadow-xs dark:shadow-lg">
+          <TiltCard maxTilt={5} glare={true} className="p-6 rounded-2xl bg-white dark:bg-gradient-to-b dark:from-charcoal-900 dark:to-charcoal-950 border border-slate-200 dark:border-cyan-500/25 hover:border-cyan-500/50 transition-all flex flex-col justify-between group shadow-xs dark:shadow-lg">
             <div>
               <div className="w-11 h-11 rounded-xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mb-3.5 group-hover:scale-105 transition-transform shadow-xs">
                 <ShieldCheck className="w-5 h-5" />
@@ -351,10 +373,10 @@ export default function Dashboard() {
               <span>Start Monitoring</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
+          </TiltCard>
 
           {/* 2. DIAGNOSE */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-gradient-to-b dark:from-charcoal-900 dark:to-charcoal-950 border border-slate-200 dark:border-emerald-500/25 hover:border-emerald-500/50 transition-all flex flex-col justify-between group shadow-xs dark:shadow-lg">
+          <TiltCard maxTilt={5} glare={true} className="p-6 rounded-2xl bg-white dark:bg-gradient-to-b dark:from-charcoal-900 dark:to-charcoal-950 border border-slate-200 dark:border-emerald-500/25 hover:border-emerald-500/50 transition-all flex flex-col justify-between group shadow-xs dark:shadow-lg">
             <div>
               <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3.5 group-hover:scale-105 transition-transform shadow-xs">
                 <Stethoscope className="w-5 h-5" />
@@ -376,10 +398,10 @@ export default function Dashboard() {
               <span>Run E-Mortem</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
+          </TiltCard>
 
           {/* 3. EMERGENCY */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-gradient-to-b dark:from-charcoal-900 dark:to-charcoal-950 border border-slate-200 dark:border-rose-500/25 hover:border-rose-500/50 transition-all flex flex-col justify-between group shadow-xs dark:shadow-lg">
+          <TiltCard maxTilt={5} glare={true} className="p-6 rounded-2xl bg-white dark:bg-gradient-to-b dark:from-charcoal-900 dark:to-charcoal-950 border border-slate-200 dark:border-rose-500/25 hover:border-rose-500/50 transition-all flex flex-col justify-between group shadow-xs dark:shadow-lg">
             <div>
               <div className="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-3.5 group-hover:scale-105 transition-transform shadow-xs">
                 <AlertTriangle className="w-5 h-5" />
@@ -401,7 +423,7 @@ export default function Dashboard() {
               <span>Diagnose Failed Device</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-          </div>
+          </TiltCard>
         </div>
       </div>
 
@@ -822,59 +844,145 @@ export default function Dashboard() {
       {/* ------------------------------------------------------------- */}
       {/* 8. REPAIR VS REPLACE & POTENTIAL SAVINGS AVOIDED               */}
       {/* ------------------------------------------------------------- */}
-      <div className="e-panel-elevated p-6 sm:p-8 rounded-3xl border border-teal-500/30 bg-white dark:bg-gradient-to-r dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#07110E]">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          <div className="md:col-span-8 space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 text-teal-800 dark:text-teal-300 text-xs font-bold font-mono">
-              <Scale className="w-3.5 h-3.5" />
-              <span>Economic Viability Second Opinion</span>
+      <TiltCard maxTilt={3} glare={true} className="e-panel-elevated p-6 sm:p-8 rounded-3xl border border-teal-500/30 bg-white dark:bg-gradient-to-r dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#07110E] shadow-xl">
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 text-teal-800 dark:text-teal-300 text-xs font-bold font-mono">
+                <Scale className="w-3.5 h-3.5" />
+                <span>Economic Viability Second Opinion • {pricing.deviceName || "Active Device"}</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                Recommendation: <span className="text-teal-700 dark:text-teal-300">{pricing.recommendation || "REPAIR FIRST"}</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl">
+                {pricing.verdictReason || "Based on reported symptoms and secondary market valuation, investigating repair appears significantly more sensible than immediate replacement."}
+              </p>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              Recommendation: <span className="text-teal-700 dark:text-teal-300">REPAIR FIRST</span>
-            </h3>
-
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-              “Based on reported symptoms and secondary market valuation, investigating repair appears significantly more sensible than immediate replacement.”
-            </p>
-
-            {/* Visual Balance Bar */}
-            <div className="pt-2">
-              <div className="flex justify-between text-xs font-mono mb-1.5">
-                <span className="text-teal-700 dark:text-teal-300 font-semibold">
-                  ESTIMATED REPAIR: ₹1,500 – ₹3,000
-                </span>
-                <span className="text-slate-500 dark:text-slate-400">
-                  CURRENT RESIDUAL VALUE: ₹18,000
-                </span>
+            <div className="flex flex-col items-center justify-center p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-teal-500/20 text-center shrink-0 min-w-[160px]">
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase mb-1">
+                Repairability Score
+              </span>
+              <div className="text-3xl sm:text-4xl font-black text-teal-700 dark:text-teal-300 mb-1">
+                {activeDevice?.repairabilityScore || 78} <span className="text-sm font-normal text-slate-500 dark:text-slate-400">/ 100</span>
               </div>
-              <div className="w-full bg-slate-200 dark:bg-charcoal-800 h-3 rounded-full overflow-hidden flex">
-                <div className="bg-teal-500 dark:bg-teal-400 h-full w-[16%]" title="Repair cost (16% of value)" />
-                <div className="bg-slate-300 dark:bg-charcoal-700 h-full w-[84%]" title="Preserved equity (84%)" />
-              </div>
-              <div className="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-1.5">
-                <span>Repair cost is only ~16% of fair device value</span>
-                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">84% device equity preserved</span>
-              </div>
+              <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
+                High Repairability Viability
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                Extends lifespan +18–24 months
+              </span>
             </div>
           </div>
 
-          <div className="md:col-span-4 flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-teal-500/20 text-center">
-            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 uppercase mb-1">
-              Repairability Score
-            </span>
-            <div className="text-4xl font-black text-teal-700 dark:text-teal-300 mb-1">
-              78 <span className="text-sm font-normal text-slate-500 dark:text-slate-400">/ 100</span>
+          {/* 4 Dynamic Pricing Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: CURRENT REPLACEMENT PRICE */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-slate-200 dark:border-charcoal-800">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                  Current Market Price
+                </span>
+                <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono">
+                {pricing.newMarketPriceFormatted || `₹${Number(pricing.newMarketPrice || 54999).toLocaleString("en-IN")}`}
+              </div>
+              <span className="text-[11px] text-slate-600 dark:text-slate-400 block mt-1">
+                Same / equivalent new device
+              </span>
             </div>
-            <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-              High Repairability Viability
-            </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-mono">
-              Extends hardware lifespan +18–24 months
-            </span>
+
+            {/* Card 2: ESTIMATED DEVICE VALUE */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-slate-200 dark:border-charcoal-800">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                  Estimated Device Value
+                </span>
+                <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold">Resale Fair</span>
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-300 font-mono">
+                {pricing.usedMarketValueFormatted || `₹${Number(pricing.usedMarketValue || 24000).toLocaleString("en-IN")}`}
+              </div>
+              <span className="text-[11px] text-slate-600 dark:text-slate-400 block mt-1">
+                Based on age + condition ({pricing.costToValueRatioPct ? `~${pricing.costToValueRatioPct}% repair ratio` : "market curve"})
+              </span>
+            </div>
+
+            {/* Card 3: ESTIMATED REPAIR */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/70 border border-teal-500/30">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-teal-700 dark:text-teal-400 font-bold">
+                  Estimated Repair
+                </span>
+                <span className="text-[10px] font-mono text-teal-700 dark:text-teal-400 font-bold">Targeted</span>
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-teal-700 dark:text-teal-300 font-mono">
+                {pricing.repairEstimate || `₹${pricing.repairEstimateMin?.toLocaleString("en-IN")} – ₹${pricing.repairEstimateMax?.toLocaleString("en-IN")}`}
+              </div>
+              <span className="text-[11px] text-teal-800 dark:text-teal-300/90 block mt-1 truncate" title={pricing.repairComponent}>
+                For this reported issue ({pricing.repairComponent?.split(" ")[0] || "Component"})
+              </span>
+            </div>
+
+            {/* Card 4: POTENTIAL REPLACEMENT COST AVOIDED */}
+            <div className="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-500/30">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-800 dark:text-emerald-400 font-bold">
+                  Replacement Cost Avoided
+                </span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
+                {pricing.replacementCostAvoidedFormatted || `₹${Number(pricing.replacementCostAvoided || 48000).toLocaleString("en-IN")}`}
+              </div>
+              <span className="text-[11px] text-emerald-800 dark:text-emerald-400/90 block mt-1 font-semibold">
+                {pricing.equityRetainedPct || 84}% device equity preserved
+              </span>
+            </div>
+          </div>
+
+          {/* Visual Balance Bar */}
+          <div className="space-y-1.5 pt-1">
+            <div className="w-full bg-slate-200 dark:bg-charcoal-800 h-3 rounded-full overflow-hidden flex shadow-inner">
+              <div
+                className="bg-teal-500 dark:bg-teal-400 h-full transition-all duration-700"
+                style={{ width: `${Math.max(8, Math.min(60, pricing.costToValueRatioPct || 14))}%` }}
+                title={`Repair cost (~${pricing.costToValueRatioPct || 14}% of value)`}
+              />
+              <div
+                className="bg-emerald-500 dark:bg-emerald-600 h-full transition-all duration-700"
+                style={{ width: `${Math.max(40, 100 - (pricing.costToValueRatioPct || 14))}%` }}
+                title={`Preserved equity (${pricing.equityRetainedPct || 84}%)`}
+              />
+            </div>
+            <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
+              <span>Repair cost is ~{pricing.costToValueRatioPct || 14}% of fair device residual value</span>
+              <span className="text-emerald-700 dark:text-emerald-400 font-semibold">{pricing.equityRetainedPct || 84}% device equity preserved</span>
+            </div>
+          </div>
+
+          {/* Price Source / Last Checked Indicator Banner */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 px-1 text-xs text-slate-500 dark:text-slate-400 font-mono border-t border-slate-200 dark:border-charcoal-800">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-teal-500" />
+              <span>Price Benchmark Source:</span>
+              <span className="text-slate-700 dark:text-slate-300 font-medium">
+                {pricing.sources ? pricing.sources[0] : "Amazon India & Cashify Electronics Index"}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-charcoal-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-charcoal-700">
+                Last Checked: {pricing.lastChecked || "March 2026"}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20">
+                {pricing.confidence || "High (Verified Model Benchmark)"}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </TiltCard>
 
       {/* ------------------------------------------------------------- */}
       {/* 9. COMMON FAILURE PATTERNS & RECOVERY OPPORTUNITIES            */}

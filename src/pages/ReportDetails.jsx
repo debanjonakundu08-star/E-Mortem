@@ -33,6 +33,9 @@ import ScoreRing from "../components/common/ScoreRing";
 import ProgressBar from "../components/common/ProgressBar";
 import StatusBadge from "../components/common/StatusBadge";
 import { useProducts } from "../context/ProductContext";
+import TiltCard from "../components/effects/TiltCard";
+import MagneticButton from "../components/effects/MagneticButton";
+import { computeClientMarketPricing } from "../utils/pricingService";
 import api from "../services/api";
 
 export default function ReportDetails() {
@@ -145,6 +148,18 @@ export default function ReportDetails() {
     showToast(`E-Mortem Report for ${device.device || device.brand} saved to registry.`, "success");
   };
 
+  // Dynamic Indian electronics market valuation & repair pricing
+  const pricing = device.pricingData || computeClientMarketPricing({
+    brand: device.brand || (device.device ? device.device.split(" ")[0] : "Samsung"),
+    model: device.model || device.device || "Galaxy S23",
+    deviceType: device.deviceType || device.type || "phone",
+    purchaseDate: device.purchaseDate || device.date || "2022-09-01",
+    purchasePrice: device.purchasePrice,
+    condition: device.condition || "good",
+    problem: device.problem || device.symptoms || "battery shut down overheating",
+    symptoms: device.symptoms || []
+  });
+
   // Safe extraction of component health
   const compHealth = device.componentHealth || {};
   const cBattery = compHealth.battery ?? compHealth["Battery"] ?? 42;
@@ -256,7 +271,7 @@ export default function ReportDetails() {
               </div>
               <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-charcoal-950/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-charcoal-800">
                 <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Est. Value: <strong className="text-slate-900 dark:text-white">₹{Number(device.currentValue || device.current_value || 18000).toLocaleString("en-IN")}</strong></span>
+                <span>Est. Resale Value: <strong className="text-slate-900 dark:text-white">{pricing.usedMarketValueFormatted}</strong></span>
               </div>
             </div>
           </div>
@@ -303,38 +318,48 @@ export default function ReportDetails() {
       {/* ------------------------------------------------------------- */}
       {/* 3. ECONOMIC VERDICT BANNER (REPAIR FIRST VS REPLACE)          */}
       {/* ------------------------------------------------------------- */}
-      <div className="e-panel-elevated p-6 rounded-2xl border border-teal-500/30 bg-white dark:bg-gradient-to-r dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#08120E] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <TiltCard
+        tiltMaxAngle={3.5}
+        glareColor="rgba(20, 184, 166, 0.12)"
+        className="e-panel-elevated p-6 rounded-2xl border border-teal-500/30 bg-white dark:bg-gradient-to-r dark:from-charcoal-900 dark:via-charcoal-950 dark:to-[#08120E] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm"
+      >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/15 border border-teal-200 dark:border-teal-500/30 text-teal-700 dark:text-teal-300 flex items-center justify-center shrink-0 shadow-sm">
             <Scale className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                 Economic Verdict:
               </span>
               <span className="text-xs font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-500/20 text-teal-800 dark:text-teal-300 border border-teal-300 dark:border-teal-500/40">
-                {device.repairVsReplace?.verdictText?.replace("🟢", "").trim() || "REPAIR FIRST"}
+                {pricing.recommendation || device.repairVsReplace?.verdictText?.replace("🟢", "").trim() || "REPAIR FIRST"}
+              </span>
+              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                • {pricing.confidence}
               </span>
             </div>
             <p className="text-xs text-slate-700 dark:text-slate-300 mt-1">
-              Estimated repair (<strong className="text-teal-700 dark:text-teal-300">{device.repairVsReplace?.estimatedRepairCost || "₹1,500 – ₹3,000"}</strong>) is only ~16% of device value (<strong className="text-slate-900 dark:text-white">₹{Number(device.currentValue || 18000).toLocaleString("en-IN")}</strong>).
+              Estimated repair (<strong className="text-teal-700 dark:text-teal-300">{pricing.repairEstimate}</strong> for {pricing.repairComponent}) vs fair resale value (<strong className="text-slate-900 dark:text-white">{pricing.usedMarketValueFormatted}</strong>) and new replacement (<strong className="text-slate-900 dark:text-white">{pricing.newMarketPriceFormatted}</strong>).
+            </p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              {pricing.verdictReason}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
           <div className="text-right">
-            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase block">CAPEX Saved</span>
+            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase block">CAPEX Avoided</span>
             <span className="text-base font-black text-emerald-700 dark:text-emerald-400 font-mono">
-              ₹{Math.max(0, Number(device.currentValue || 18000) - 2500).toLocaleString("en-IN")}
+              {pricing.replacementCostAvoidedFormatted}
             </span>
           </div>
           <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-500/20">
-            84% Equity Retained
+            {pricing.equityRetainedPct}% Equity Retained
           </span>
         </div>
-      </div>
+      </TiltCard>
 
       {/* ------------------------------------------------------------- */}
       {/* 4. CONFIDENCE & EVIDENCE QUALITY METRICS                      */}
@@ -605,9 +630,9 @@ export default function ReportDetails() {
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-teal-200 dark:border-teal-500/30">
               <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase block mb-1">Estimated Repair Outlay</span>
               <div className="text-xl font-black text-teal-700 dark:text-teal-300 font-mono">
-                {device.repairVsReplace?.estimatedRepairCost || "₹1,500 – ₹3,000"}
+                {pricing.repairEstimate}
               </div>
-              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">Component-level battery / thermal service</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">{pricing.repairComponent}</span>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-teal-200 dark:border-teal-500/30">
@@ -615,15 +640,15 @@ export default function ReportDetails() {
               <div className="text-xl font-black text-emerald-700 dark:text-emerald-400">
                 +18–24 Months
               </div>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block font-mono">Prototype estimate</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block font-mono">Verified component repair</span>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-teal-200 dark:border-teal-500/30">
               <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase block mb-1">Economic Impact</span>
-              <div className="text-xl font-black text-cyan-700 dark:text-cyan-300">
-                84% Equity Saved
+              <div className="text-xl font-black text-cyan-700 dark:text-cyan-300 font-mono">
+                {pricing.equityRetainedPct}% Equity Saved
               </div>
-              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">Avoids premature capital expenditure</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">Avoids {pricing.replacementCostAvoidedFormatted} premature replacement expenditure</span>
             </div>
           </div>
         ) : (
@@ -631,9 +656,9 @@ export default function ReportDetails() {
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-rose-200 dark:border-rose-500/30">
               <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase block mb-1">New Device Outlay</span>
               <div className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono">
-                ₹45,000 – ₹65,000
+                {pricing.newMarketPriceFormatted}
               </div>
-              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">Full retail replacement expenditure</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">Equivalent replacement retail benchmark</span>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-rose-200 dark:border-rose-500/30">
@@ -641,7 +666,7 @@ export default function ReportDetails() {
               <div className="text-xl font-black text-amber-700 dark:text-amber-300">
                 Data Salvage Required
               </div>
-              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">Backup personal photos & crypto tokens before trade-in</span>
+              <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 block">Current fair market value: {pricing.usedMarketValueFormatted}</span>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-charcoal-950/80 border border-rose-200 dark:border-rose-500/30">

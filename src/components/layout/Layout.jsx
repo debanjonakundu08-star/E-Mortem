@@ -5,12 +5,15 @@ import Toast from "../common/Toast";
 import EMortemAIAssistant from "../assistant/EMortemAIAssistant";
 import { useProducts } from "../../context/ProductContext";
 
+import CursorReactiveBackdrop from "../effects/CursorReactiveBackdrop";
+
 export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useProducts();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-charcoal-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-charcoal-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200 overflow-x-hidden">
+      <CursorReactiveBackdrop />
       <Sidebar
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}

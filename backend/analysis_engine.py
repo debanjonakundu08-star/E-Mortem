@@ -7,6 +7,7 @@ with evidence ("Why we think this"), and actionable technician questions.
 
 from typing import Dict, Any, List
 import uuid
+from pricing_service import get_device_market_pricing
 
 def analyze_device_telemetry(data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -301,34 +302,44 @@ def analyze_device_telemetry(data: Dict[str, Any]) -> Dict[str, Any]:
         c["reason"] = c["description"]
 
     # -------------------------------------------------------------
-    # 4. REPAIRABILITY SCORE & REPAIR ESTIMATE
+    # 4. DYNAMIC MARKET PRICING & REPAIRABILITY SCORE
     # -------------------------------------------------------------
+    import re
+    age_years = 2.0
+    try:
+        if data.get("age") or device_info.get("age"):
+            age_years = float(data.get("age") or device_info.get("age") or 2.0)
+        else:
+            p_date = str(data.get("purchase_date") or device_info.get("purchase_date") or "")
+            year_match = re.search(r'\b(20\d\d)\b', p_date)
+            if year_match:
+                age_years = max(0.5, 2026.0 - float(year_match.group(1)))
+    except Exception:
+        age_years = 2.0
+
+    pricing_data = get_device_market_pricing(
+        brand=brand,
+        model=model,
+        device_type=device_type,
+        age_years=age_years,
+        condition=str(data.get("current_condition") or "working_with_problems"),
+        symptoms=list(normalized_symptoms),
+        purchase_price=purchase_price,
+        is_water_damaged=is_water_damaged
+    )
+
     if current_value <= 0:
-        current_value = purchase_price * 0.35 if purchase_price > 0 else 18000.0
+        current_value = float(pricing_data["used_market_value"])
 
-    # Determine repair cost estimate
-    min_repair = 1500
-    max_repair = 3000
-
-    if is_water_damaged:
-        min_repair = 4500
-        max_repair = 12000
-    elif "screen_issue" in normalized_symptoms:
-        min_repair = 3500
-        max_repair = 8500
-    elif "overheating" in normalized_symptoms and "laptop" in device_type.lower():
-        min_repair = 1200
-        max_repair = 2500
-    elif "charging_problem" in normalized_symptoms:
-        min_repair = 1000
-        max_repair = 2200
+    min_repair = pricing_data["repair_estimate_min"]
+    max_repair = pricing_data["repair_estimate_max"]
 
     if repair_cost > 0:
         actual_repair_cost = repair_cost
         min_repair = int(repair_cost * 0.8)
         max_repair = int(repair_cost * 1.2)
     else:
-        actual_repair_cost = (min_repair + max_repair) / 2
+        actual_repair_cost = float(pricing_data["repair_estimate_avg"])
 
     cost_ratio = actual_repair_cost / max(1.0, current_value)
     rep_base = 86 - int(cost_ratio * 70)
@@ -338,35 +349,8 @@ def analyze_device_telemetry(data: Dict[str, Any]) -> Dict[str, Any]:
         rep_base -= 15
     repairability_score = max(15, min(95, rep_base))
 
-    # Determine Recommendation
-    if is_water_damaged and cost_ratio > 0.55:
-        recommendation = "RECOVER"
-        recommendation_reason = (
-            f"Extensive moisture exposure and repair quote (₹{actual_repair_cost:,.0f}) relative to value (₹{current_value:,.0f}) "
-            "indicate high risk of secondary short-circuits. Harvesting reusable display, storage, and external modules is recommended."
-        )
-    elif cost_ratio < 0.32 and repairability_score >= 65:
-        recommendation = "REPAIR_FIRST"
-        recommendation_reason = (
-            f"Estimated repair cost (₹{min_repair:,.0f}–₹{max_repair:,.0f}) is only {int(cost_ratio * 100)}% of the device's fair value (₹{current_value:,.0f}). "
-            "Investigating repair is significantly more economical and sustainable than purchasing a replacement."
-        )
-    elif cost_ratio < 0.55:
-        recommendation = "INSPECT"
-        recommendation_reason = (
-            f"Repair cost is moderate (approx. {int(cost_ratio * 100)}% of value). A physical bench diagnosis is recommended to confirm "
-            "if a minor component repair (e.g. cleaning, connector reseating) can resolve the issue before paying for full module replacement."
-        )
-    elif repairability_score >= 45:
-        recommendation = "REFURBISH"
-        recommendation_reason = (
-            "The device possesses high cosmetic and functional utility suited for specialized secondary workflows or trade-in refurbishment."
-        )
-    else:
-        recommendation = "REPLACE"
-        recommendation_reason = (
-            f"Repair cost exceeds {int(cost_ratio * 100)}% of fair market value. However, key components should be safely harvested before certified e-waste recycling."
-        )
+    recommendation = pricing_data["verdict_badge"]
+    recommendation_reason = pricing_data["verdict_reason"]
 
     # -------------------------------------------------------------
     # 5. HUMAN-READABLE "WHAT PROBABLY HAPPENED?" EXPLANATION
@@ -537,16 +521,27 @@ def analyze_device_telemetry(data: Dict[str, Any]) -> Dict[str, Any]:
         "recoveryAnalysis": recovery_options,
         "repair_estimate": {
             "min": min_repair,
-            "max": max_repair
+            "max": max_repair,
+            "component": pricing_data["repair_component"],
+            "category": pricing_data["repair_category"]
         },
         "repairVsReplace": {
             "estimatedRepairCost": f"₹{min_repair:,.0f} – ₹{max_repair:,.0f}",
             "estimatedDeviceValue": f"₹{current_value:,.0f}",
-            "verdictText": f"🟢 {recommendation.replace('_', ' ')}",
-            "recommendation": recommendation.replace('_', ' '),
+            "newMarketPrice": f"₹{pricing_data['new_market_price']:,.0f}",
+            "replacementCostAvoided": f"₹{pricing_data['replacement_cost_avoided']:,.0f}",
+            "equityRetainedPct": pricing_data["equity_retained_pct"],
+            "costToValueRatioPct": pricing_data["cost_to_value_ratio_pct"],
+            "repairComponent": pricing_data["repair_component"],
+            "verdictText": f"🟢 {pricing_data['recommendation']}",
+            "recommendation": pricing_data["recommendation"],
             "explanation": recommendation_reason,
-            "decisionConfidence": 88
+            "decisionConfidence": 90,
+            "sources": pricing_data["sources"],
+            "lastChecked": pricing_data["last_checked"],
+            "confidence": pricing_data["confidence"]
         },
+        "pricing_data": pricing_data,
         "action_plan": action_plan,
         "actionPlan": action_plan,
         "technician_questions": tech_questions_data,
